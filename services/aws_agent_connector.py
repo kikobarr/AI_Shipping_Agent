@@ -1,62 +1,38 @@
 import boto3
-import time
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class AWSAgentConnector:
     def __init__(self):
-        self.bedrock_agent = None
-        self.session = None
-        self.agent_id = None
-        self.agent_alias_id = None
+        self.agent_id = "3XVI4HOXHU"
+        self.agent_alias_id = "CLNNKMUSBC"
+        self.region = os.getenv("AWS_REGION", "us-west-2")
+        self.runtime_client = boto3.client(
+            "bedrock-agent-runtime",
+            region_name=self.region,
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
+        )
 
-    def initialize_connection(self, aws_access_key, aws_secret_key, region, agent_id, agent_alias_id):
-        """
-        Initialize a connection to AWS Bedrock Agent Runtime.
-        """
+    def initialize_connection(self):
+        # You can still return a result if you want UI feedback
         try:
-            self.session = boto3.Session(
-                aws_access_key_id=aws_access_key,
-                aws_secret_access_key=aws_secret_key,
-                region_name=region
-            )
-            self.bedrock_agent = self.session.client('bedrock-agent-runtime')
-            self.agent_id = agent_id
-            self.agent_alias_id = agent_alias_id
-
-            # Test connection
-            test_session_id = f"test-session-{int(time.time())}"
-            self.bedrock_agent.invoke_agent(
-                agentId=self.agent_id,
-                agentAliasId=self.agent_alias_id,
-                sessionId=test_session_id,
-                inputText="Hello, are you working?"
-            )
-            return True, "Successfully connected to AWS Bedrock Agent!"
+            return True, "Successfully loaded credentials from .env"
         except Exception as e:
-            return False, f"Connection failed: {str(e)}"
+            return False, f"Failed to initialize: {str(e)}"
 
-    def send_message(self, message, session_id):
-        """
-        Send a message to the AWS Bedrock Agent and return its response.
-        """
-        if not self.bedrock_agent:
-            return "Error: Agent not connected. Please configure connection first."
-
-        try:
-            response = self.bedrock_agent.invoke_agent(
-                agentId=self.agent_id,
-                agentAliasId=self.agent_alias_id,
-                sessionId=session_id,
-                inputText=message
-            )
-
-            # Extract and decode response (works for streaming-style responses)
-            response_text = ""
-            if 'completion' in response:
-                for event in response['completion']:
-                    if 'chunk' in event and 'bytes' in event['chunk']:
-                        response_text += event['chunk']['bytes'].decode('utf-8')
-
-            return response_text or "Agent processed your request successfully."
-
-        except Exception as e:
-            return f"Error communicating with agent: {str(e)}"
+    def send_message(self, prompt, session_id):
+        response = self.runtime_client.invoke_agent(
+            agentId=self.agent_id,
+            agentAliasId=self.agent_alias_id,
+            sessionId=session_id,
+            inputText=prompt,
+        )
+        completion = ""
+        for event in response.get("completion", []):
+            chunk = event["chunk"]
+            completion += chunk["bytes"].decode()
+        return completion
