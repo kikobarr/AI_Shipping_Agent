@@ -1,4 +1,10 @@
-streamlit>=1.28.0
-boto3>=1.34.0
+streamlit
+streamlit-option-menu
+streamlit-extras
+streamlit-chat
+streamlit-lottie
+streamlit-toggle-switch
+boto3
 botocore>=1.34.0
-python-dotenv>=1.0.0
+python-dotenv
+requests

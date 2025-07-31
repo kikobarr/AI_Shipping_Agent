@@ -1,20 +1,26 @@
-/* === Navbar === */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* === Professional Navbar === */
 .navbar {
-    background: linear-gradient(90deg, #667eea, #764ba2);
-    padding: 0.75rem 2rem;
+    background: linear-gradient(90deg, #3b82f6, #1e40af);
+    padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-radius: 0 0 10px 10px;
+    border-radius: 0 0 12px 12px;
     position: sticky;
     top: 0;
     z-index: 999;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .navbar h2 {
     margin: 0;
     color: white;
-    font-size: 1.4rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
 }
 
 .nav-links {
@@ -26,42 +32,110 @@
     color: white;
     text-decoration: none;
     font-weight: 500;
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    transition: background 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
 }
 
 .nav-links a:hover {
     background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
 }
 
-/* Chat UI (your previous CSS) */
+/* === Professional Chat UI === */
 .user-message {
-    background: #e3f2fd;
-    padding: 1rem;
-    border-radius: 10px;
-    margin: 0.5rem 0;
-    border-left: 4px solid #2196f3;
+    background: #eff6ff;
+    padding: 1.25rem;
+    border-radius: 12px;
+    margin: 0.75rem 0;
+    border-left: 4px solid #3b82f6;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+
 .agent-message {
-    background: #f3e5f5;
-    padding: 1rem;
-    border-radius: 10px;
-    margin: 0.5rem 0;
-    border-left: 4px solid #9c27b0;
+    background: #f9fafb;
+    padding: 1.25rem;
+    border-radius: 12px;
+    margin: 0.75rem 0;
+    border-left: 4px solid #6b7280;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+
 .status-box {
-    padding: 1rem;
-    border-radius: 5px;
-    margin: 1rem 0;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
 }
+
 .status-connected {
-    background: #d4edda;
-    border: 1px solid #c3e6cb;
-    color: #155724;
+    background: #d1fae5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
 }
+
 .status-disconnected {
-    background: #f8d7da;
-    border: 1px solid #f5c6cb;
-    color: #721c24;
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+}
+
+/* === Form Elements === */
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea {
+    font-family: 'Inter', sans-serif;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: border-color 0.2s ease;
+}
+
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* === Buttons === */
+.stButton > button {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.stButton > button:hover {
+    background-color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* === Typography === */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+p, div, span {
+    font-family: 'Inter', sans-serif;
+    color: #374151;
+}
+
+/* === Sidebar === */
+.css-1d391kg {
+    font-family: 'Inter', sans-serif;
+}
+
+/* === Main Content === */
+.main .block-container {
+    font-family: 'Inter', sans-serif;
 }
