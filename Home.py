@@ -43,14 +43,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar menu
-page = st.sidebar.selectbox("Navigate to a Page", ["Home", "Chatbot", "Shipping"])
-
-# Redirect based on sidebar selection
-if page == "Chatbot":
-    switch_page("2_Chatbot")
-elif page == "Shipping":
-    switch_page("3_Shipping")
 
 # HOME PAGE UI
 st.markdown('<h1 class="main-title">Welcome to the Shipping Assistant Dashboard</h1>', unsafe_allow_html=True)

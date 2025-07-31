@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from services.shippingAPI import compare_all_quotes
 
 st.set_page_config(page_title="Shipping Rate Comparison", layout="wide")
@@ -101,21 +102,24 @@ if submit:
     if "error" in quotes:
         st.error(quotes["error"])
     else:
-        st.success(f"Found {len(quotes)} shipping option(s)")
+                 # ---- TABLES: Cheapest and Fastest ----
+        
+        # Convert to DataFrame
+        df = pd.DataFrame.from_dict(quotes, orient='index').reset_index().rename(columns={"index": "service_name"})
+        df["shipping_amount_usd"] = df["shipping_amount"].str.replace(" USD", "").astype(float)
 
-        # Group by carrier
-        carriers = {}
-        for full_service_name, data in quotes.items():
-            carrier_name = full_service_name.split(" - ")[0]
-            if carrier_name not in carriers:
-                carriers[carrier_name] = []
-            carriers[carrier_name].append((full_service_name, data))
+        # Top 5 Cheapest
+        cheapest = df.sort_values("shipping_amount_usd").head(5)
+        st.markdown("### Top 5 Cheapest Shipping Options")
+        st.dataframe(cheapest[["service_name", "carrier_code", "shipping_amount"]], use_container_width=True, hide_index=True)
 
-        for carrier, entries in carriers.items():
-            st.markdown(f"### 🚚 {carrier}")
-            for service_name, data in entries:
-                st.markdown('<div class="quote-result">', unsafe_allow_html=True)
-                st.markdown(f'<h4 class="carrier-header">{service_name}</h4>', unsafe_allow_html=True)
-                for k, v in data.items():
-                    st.write(f"**{k.replace('_', ' ').capitalize()}:** {v}")
-                st.markdown('</div>', unsafe_allow_html=True)
+        # Top 5 Fastest (based on label match)
+        fast_keywords = ["Overnight", "Next Day", "Express", "Early"]
+        fast_df = df[df["service_name"].str.contains("|".join(fast_keywords), case=False)]
+        fastest = fast_df.sort_values("shipping_amount_usd").head(5)
+
+        st.markdown("### Top 5 Fastest Shipping Options (by label)")
+        st.dataframe(fastest[["service_name", "carrier_code", "shipping_amount"]], use_container_width=True, hide_index=True)
+        
+        
+
