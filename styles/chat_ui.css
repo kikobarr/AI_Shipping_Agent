@@ -1,0 +1,67 @@
+/* === Navbar === */
+.navbar {
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    padding: 0.75rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0 0 10px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.navbar h2 {
+    margin: 0;
+    color: white;
+    font-size: 1.4rem;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    transition: background 0.3s ease;
+}
+
+.nav-links a:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Chat UI (your previous CSS) */
+.user-message {
+    background: #e3f2fd;
+    padding: 1rem;
+    border-radius: 10px;
+    margin: 0.5rem 0;
+    border-left: 4px solid #2196f3;
+}
+.agent-message {
+    background: #f3e5f5;
+    padding: 1rem;
+    border-radius: 10px;
+    margin: 0.5rem 0;
+    border-left: 4px solid #9c27b0;
+}
+.status-box {
+    padding: 1rem;
+    border-radius: 5px;
+    margin: 1rem 0;
+}
+.status-connected {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+.status-disconnected {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
