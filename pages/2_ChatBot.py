@@ -32,27 +32,27 @@ if 'connected' not in st.session_state:
 
 st.header("💬 Chat with Your Agent")
 
-# Sidebar config
-with st.sidebar:
-    st.header("🔧 AWS Agent Configuration")
-    with st.form("aws_config"):
-        aws_access_key = st.text_input("AWS Access Key ID", type="password")
-        aws_secret_key = st.text_input("AWS Secret Access Key", type="password")
-        region = st.selectbox("AWS Region", ["us-east-1", "us-west-2", "eu-west-1", "ap-southeast-1"])
-        agent_id = st.text_input("Bedrock Agent ID")
-        agent_alias_id = st.text_input("Agent Alias ID", value="TSTALIASID")
-        submit_config = st.form_submit_button("Connect to Agent")
+# # Sidebar config
+# with st.sidebar:
+#     st.header("🔧 AWS Agent Configuration")
+#     with st.form("aws_config"):
+#         aws_access_key = st.text_input("AWS Access Key ID", type="password")
+#         aws_secret_key = st.text_input("AWS Secret Access Key", type="password")
+#         region = st.selectbox("AWS Region", ["us-east-1", "us-west-2", "eu-west-1", "ap-southeast-1"])
+#         agent_id = st.text_input("Bedrock Agent ID")
+#         agent_alias_id = st.text_input("Agent Alias ID", value="TSTALIASID")
+#         submit_config = st.form_submit_button("Connect to Agent")
 
-        if submit_config:
-            if all([aws_access_key, aws_secret_key, region, agent_id]):
-                with st.spinner("Connecting to AWS Bedrock Agent..."):
-                    success, message = st.session_state.agent_connector.initialize_connection(
-                        aws_access_key, aws_secret_key, region, agent_id, agent_alias_id
-                    )
-                    st.session_state.connected = success
-                    st.success(message) if success else st.error(message)
-            else:
-                st.error("Please fill in all required fields")
+#         if submit_config:
+#             if all([aws_access_key, aws_secret_key, region, agent_id]):
+#                 with st.spinner("Connecting to AWS Bedrock Agent..."):
+#                     success, message = st.session_state.agent_connector.initialize_connection(
+#                         aws_access_key, aws_secret_key, region, agent_id, agent_alias_id
+#                     )
+#                     st.session_state.connected = success
+#                     st.success(message) if success else st.error(message)
+#             else:
+#                 st.error("Please fill in all required fields")
 
 # Status box
 st.markdown(f"""

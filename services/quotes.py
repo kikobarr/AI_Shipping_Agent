@@ -1,11 +1,12 @@
-# services/quotes.py
-import json
+import os
 import requests
+from dotenv import load_dotenv
 
-# Replace with secure storage in production
-FEDEX_CLIENT_ID = "l73e80924b04f249768f45f5767778d0a3"
-FEDEX_CLIENT_SECRET = "13dff649cdf6425698db8491ea2e3d8b"
+load_dotenv()
 
+FEDEX_CLIENT_ID = os.getenv("FEDEX_CLIENT_ID")
+FEDEX_CLIENT_SECRET = os.getenv("FEDEX_CLIENT_SECRET")
+FEDEX_ACCOUNT_NUMBER = os.getenv("FEDEX_ACCOUNT_NUMBER")
 
 def get_fedex_token():
     url = "https://apis.fedex.com/oauth/token"
@@ -17,18 +18,9 @@ def get_fedex_token():
     }
     response = requests.post(url, headers=headers, data=data)
     response.raise_for_status()
-    return response.json()['access_token']
+    return response.json()["access_token"]
 
-
-def get_fedex_quote(origin, destination, weight):
-    token = get_fedex_token()
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {token}"}
-    payload = build_fedex_payload(origin, destination, weight)
-    response = requests.post("https://api.fedex.com/rate/v2/rates/quotes", headers=headers, json=payload)
-    return response.json()
-
-
-def build_fedex_payload(origin, destination, weight_lbs):
+def build_fedex_payload(origin, destination, weight_lbs, dimensions, packaging_type):
     return {
         "rateRequestControlParameters": {
             "rateSortOrder": "COMMITASCENDING",
@@ -39,48 +31,52 @@ def build_fedex_payload(origin, destination, weight_lbs):
             "shipper": {
                 "accountNumber": {
                     "key": FEDEX_CLIENT_ID,
-                    "value": "207084866"
+                    "value": FEDEX_ACCOUNT_NUMBER
                 },
                 "address": {
+                    "streetLines": [origin.get("street", ""), origin.get("apt", "")],
                     "city": origin["city"],
+                    "stateOrProvinceCode": origin["state"],
                     "postalCode": origin["postalCode"],
-                    "countryCode": origin.get("countryCode", "US"),
-                    "streetLines": [origin.get("street", "")],
-                    "residential": False,
-                    "stateOrProvinceCode": origin["state"]
+                    "countryCode": "US",
+                    "residential": False
                 }
             },
             "recipients": [{
                 "address": {
+                    "streetLines": [destination.get("street", ""), destination.get("apt", "")],
                     "city": destination["city"],
+                    "stateOrProvinceCode": destination["state"],
                     "postalCode": destination["postalCode"],
-                    "countryCode": destination.get("countryCode", "US"),
-                    "streetLines": [destination.get("street", "")],
-                    "residential": False,
-                    "stateOrProvinceCode": destination["state"]
+                    "countryCode": "US",
+                    "residential": False
                 }
             }],
             "shipTimestamp": "2025-07-31",
             "pickupType": "DROPOFF_AT_FEDEX_LOCATION",
-            "packagingType": "FEDEX_SMALL_BOX",
+            "packagingType": packaging_type,
             "shippingChargesPayment": {
                 "payor": {
                     "responsibleParty": {
                         "accountNumber": {
                             "key": FEDEX_CLIENT_ID,
-                            "value": "207084866"
+                            "value": FEDEX_ACCOUNT_NUMBER
                         },
-                        "address": {
-                            "countryCode": "US"
-                        }
+                        "address": {"countryCode": "US"}
                     }
                 }
             },
             "requestedPackageLineItems": [{
                 "groupPackageCount": 1,
-                "physicalPackaging": "FEDEX_SMALL_BOX",
+                "physicalPackaging": packaging_type,
                 "insuredValue": {"currency": "USD", "amount": 0},
-                "weight": {"units": "LB", "value": weight_lbs}
+                "weight": {"units": "LB", "value": weight_lbs},
+                "dimensions": {
+                    "length": dimensions["length"],
+                    "width": dimensions["width"],
+                    "height": dimensions["height"],
+                    "units": "IN"
+                }
             }],
             "preferredCurrency": "USD"
         },
@@ -89,9 +85,18 @@ def build_fedex_payload(origin, destination, weight_lbs):
         "webSiteCountryCode": "US"
     }
 
-
-def get_all_quotes(origin, destination, weight):
-    return {
-        "fedex": get_fedex_quote(origin, destination, weight),
-        # Future: add UPS and DHL when APIs are ready
+def get_all_quotes(origin, destination, weight, dimensions, packaging_type):
+    token = get_fedex_token()
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
     }
+    payload = build_fedex_payload(origin, destination, weight, dimensions, packaging_type)
+
+    response = requests.post(
+        "https://apis.fedex.com/rate/v2/rates/quotes",
+        headers=headers,
+        json=payload
+    )
+    response.raise_for_status()
+    return response.json()
