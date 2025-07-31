@@ -1,0 +1,7 @@
+[theme]
+base = "dark"
+primaryColor = "#36a9e1"             # Elastic Cyan
+backgroundColor = "#1b1d1e"          # Dark background
+secondaryBackgroundColor = "#2a2e33" # Panel/card dark gray
+textColor = "#f5f7fa"                # Light text for readability
+font = "sans serif"
