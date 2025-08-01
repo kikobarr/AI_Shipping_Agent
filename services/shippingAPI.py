@@ -14,7 +14,7 @@ if not SHIPENGINE_API_KEY:
 CARRIER_IDS = [
     "se-2904338",  # Stamps.com (USPS)
     "se-2904339",  # UPS
-    "se-2904341",
+    "se-2904341",  # FEDEX
     "se-2904340"   # GlobalPost
 ]
 
