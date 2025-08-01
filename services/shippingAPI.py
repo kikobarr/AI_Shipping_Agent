@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+import json
 
 # Load .env
 load_dotenv()
@@ -104,7 +105,7 @@ def compare_all_quotes(origin, destination, weight, dimensions, packaging_type):
                     "delivery_days": f"{rate.get('estimated_delivery_days', 'N/A')} day(s)",
                     "rate_id": rate.get("rate_id")
                 }
-
+            print("Quotes JSON:", json.dumps(quotes, indent=2))
             return quotes
         else:
             return {"error": f"{response.status_code}: {response.text}"}
