@@ -249,24 +249,3 @@ if uploaded_file:
             st.dataframe(supplier_lines[["Line Descr", f"{category} (Amt)"]])
         else:
             st.info("No data available for selected category.")
-
-    with st.container():
-        st.subheader("Forecast Future Spend (Prophet)")
-
-        selected_forecast_cat = st.selectbox("Choose a category to forecast", amt_cols)
-        forecast_df = df[["PO Date", selected_forecast_cat]].copy()
-        forecast_df = forecast_df.groupby(pd.Grouper(key="PO Date", freq="MS")).sum().reset_index()
-        forecast_df.columns = ["ds", "y"]
-
-        try:
-            from prophet import Prophet
-            model = Prophet()
-            model.fit(forecast_df)
-            future = model.make_future_dataframe(periods=6, freq='MS')
-            forecast = model.predict(future)
-
-            fig = model.plot(forecast)
-            plt.title(f"Forecast: {selected_forecast_cat}", fontsize=14)
-            st.pyplot(fig)
-        except Exception as e:
-            st.error(f"Forecasting failed: {e}")
