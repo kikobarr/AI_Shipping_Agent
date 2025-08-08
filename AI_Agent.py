@@ -25,7 +25,106 @@ st.markdown("""
     .css-17eq0hr {display: none}
     [data-testid="stSidebar"] {display: none}
     [data-testid="collapsedControl"] {display: none}
+    
+    /* Copy button styling */
+    .copy-button {
+        background-color: #f0f2f6;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 12px;
+        cursor: pointer;
+        margin-left: 8px;
+        display: inline-block;
+        color: #374151;
+    }
+    
+    .copy-button:hover {
+        background-color: #e5e7eb;
+        border-color: #9ca3af;
+    }
+    
+    .copy-button:active {
+        background-color: #d1d5db;
+    }
+    
+    .package-details {
+        position: relative;
+        display: inline-block;
+    }
 </style>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success feedback
+        const button = event.target;
+        const originalText = button.textContent;
+        button.textContent = '✓ Copied!';
+        button.style.backgroundColor = '#10b981';
+        button.style.color = 'white';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.backgroundColor = '#f0f2f6';
+            button.style.color = '#374151';
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        alert('Copy failed. Please select and copy manually.');
+    });
+}
+
+// Add copy buttons to package details after page loads
+document.addEventListener('DOMContentLoaded', function() {
+    addCopyButtons();
+});
+
+// Also run when Streamlit reruns
+window.addEventListener('load', function() {
+    setTimeout(addCopyButtons, 100);
+});
+
+function addCopyButtons() {
+    // Find all chat messages
+    const chatMessages = document.querySelectorAll('[data-testid="chatMessage"]');
+    
+    chatMessages.forEach(message => {
+        const messageText = message.textContent || message.innerText;
+        
+        // Look for package details pattern
+        const packageMatch = messageText.match(/(\d+(?:\.\d+)?lb package \([^)]+\) from [^\\n]+to [^\\n]+)/);
+        
+        if (packageMatch && !message.querySelector('.copy-button')) {
+            const packageDetails = packageMatch[1];
+            const messageContent = message.querySelector('[data-testid="chatMessageContent"]');
+            
+            if (messageContent) {
+                // Create copy button
+                const copyButton = document.createElement('button');
+                copyButton.className = 'copy-button';
+                copyButton.textContent = '📋 Copy';
+                copyButton.onclick = () => copyToClipboard(packageDetails);
+                copyButton.title = 'Copy package details';
+                
+                // Insert button after the package details line
+                const lines = messageContent.innerHTML.split('\\n');
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].includes('Package:') && lines[i].includes('lbs,') && lines[i].includes('inches')) {
+                        lines[i] += '<button class="copy-button" onclick="copyToClipboard(\'' + 
+                                   packageDetails.replace(/'/g, "\\\\'") + '\')" title="Copy package details">📋 Copy</button>';
+                        break;
+                    }
+                }
+                messageContent.innerHTML = lines.join('\\n');
+            }
+        }
+    });
+}
+
+// Run periodically to catch new messages
+setInterval(addCopyButtons, 1000);
+</script>
 """, unsafe_allow_html=True)
 
 # Load CSS
@@ -65,8 +164,8 @@ if not st.session_state.connected:
 # Example prompts for users
 if not st.session_state.messages:
     st.markdown("""
-    **Try asking me:** How much does it cost to ship a 5lb package (4 x 5 x 7in) from 913 Paseo Camarillo, Camarillo, CA 93010 
-    to 1 Harpst St, Arcata, CA 95521?
+    **Try asking me:** All FedEx quotes for 9lb package (4 x 5 x 7in) from 
+                913 Paseo Camarillo, Camarillo, CA 93010 to 1 Harpst St, Arcata, CA 95521
     """)
 
 # Chat history
@@ -77,21 +176,54 @@ for message in st.session_state.messages:
     
     # Use Streamlit's built-in chat message display
     with st.chat_message(role):
-        st.write(content)
-        st.caption(f"{timestamp}")
+        # Check if this is a FedEx quote response with package details
+        if role == "assistant" and "Package:" in content and "lbs," in content and "inches" in content:
+            # Extract package details for copy functionality
+            lines = content.split('\n')
+            package_line = ""
+            from_line = ""
+            to_line = ""
+            
+            for line in lines:
+                if line.startswith("From:"):
+                    from_line = line.strip()
+                elif line.startswith("To:"):
+                    to_line = line.strip()
+                elif line.startswith("Package:"):
+                    package_line = line.strip()
+            
+            # Create copyable text
+            if package_line and from_line and to_line:
+                copyable_text = f"{package_line} {from_line} {to_line}"
+                
+                # Display content
+                st.write(content)
+                
+                # Add copy button
+                col1, col2 = st.columns([5, 1])
+                with col2:
+                    if st.button("📋 Copy Details", key=f"copy_{timestamp}", help="Copy package and route details"):
+                        st.code(copyable_text, language=None)
+                        st.success("📋 Details copied above - select and copy!")
+            else:
+                st.write(content)
+        else:
+            st.write(content)
+            
+        st.caption(f"⏰ {timestamp}")
     
     # Show debug information for assistant messages if available
     if role == "assistant" and "debug_info" in message:
         debug_info = message["debug_info"]
         if debug_info.get("tool_calls_made", False):
-            with st.expander(f"Debug Info - Tools Used ({len(debug_info.get('tools_used', []))})"):
-                st.success("AI Agent successfully called FedEx API tools")
+            with st.expander(f"🔍 Debug Info - Tools Used ({len(debug_info.get('tools_used', []))})"):
+                st.success("✅ AI Agent successfully called FedEx API tools")
                 for i, tool_info in enumerate(debug_info.get('tools_used', []), 1):
                     st.write(f"**Tool {i}: {tool_info['tool']}**")
                     st.json(tool_info['input'])
                     st.text_area(f"Tool Output {i}:", tool_info['output'], height=100)
         else:
-            with st.expander("Debug Info - No Tools Used"):
+            with st.expander("⚠️ Debug Info - No Tools Used"):
                 st.warning("AI did not call any tools for this response. This might indicate hallucination.")
                 if "error" in debug_info:
                     st.error(f"Error: {debug_info['error']}")
