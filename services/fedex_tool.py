@@ -36,12 +36,9 @@ class FedExShippingTool(BaseTool):
     Get real-time shipping quotes from FedEx API. Use this tool when users ask for shipping rates, 
     costs, or quotes. You need COMPLETE addresses including street addresses, city, state, and postal code 
     for both origin and destination, plus package details (weight, dimensions). Available service types:
-    - FEDEX_GROUND: Most economical ground service
-    - FEDEX_EXPRESS_SAVER: 3 business days
-    - FEDEX_2_DAY: 2 business days
-    - FEDEX_2_DAY_AM: 2 business days by 10:30 AM
-    - STANDARD_OVERNIGHT: Next business day by 3 PM
-    - PRIORITY_OVERNIGHT: Next business day by 10:30 AM
+    - FEDEX_GROUND: Most economical ground service (4 business days)
+    - FEDEX_EXPRESS_SAVER: Express service (3 business days)
+    - FEDEX_2_DAY: Fast service (2 business days)
     
     IMPORTANT: Always ask for complete street addresses, not just city/state/zip!
     """
@@ -159,8 +156,7 @@ class FedExMultiServiceTool(BaseTool):
     Get shipping quotes for ALL available FedEx services at once. Use this when users want to 
     compare different shipping options or see all available services. Requires COMPLETE addresses 
     including street addresses, city, state, and postal code for both origin and destination, 
-    plus package details (weight, dimensions). Returns quotes for Ground, Express Saver, 2Day, 
-    2Day AM, Standard Overnight, and Priority Overnight.
+    plus package details (weight, dimensions). Returns quotes for Ground, Express Saver, and 2Day services.
     
     IMPORTANT: Always ask for complete street addresses, not just city/state/zip!
     """
@@ -184,14 +180,11 @@ class FedExMultiServiceTool(BaseTool):
     ) -> str:
         """Get quotes for all FedEx services"""
         
-        # List of all FedEx services to quote
+        # List of reliable FedEx services (removed problematic overnight services)
         services = [
             ('FEDEX_GROUND', '🚚 FedEx Ground'),
             ('FEDEX_EXPRESS_SAVER', '⚡ FedEx Express Saver'),
-            ('FEDEX_2_DAY', '📦 FedEx 2Day'),
-            ('FEDEX_2_DAY_AM', '🌅 FedEx 2Day A.M.'),
-            ('STANDARD_OVERNIGHT', '🌙 FedEx Standard Overnight'),
-            ('PRIORITY_OVERNIGHT', '🚀 FedEx Priority Overnight')
+            ('FEDEX_2_DAY', '📦 FedEx 2Day')
         ]
         
         origin = {
@@ -249,10 +242,7 @@ class FedExMultiServiceTool(BaseTool):
                                     transit_map = {
                                         'FEDEX_GROUND': '4 business days',
                                         'FEDEX_EXPRESS_SAVER': '3 business days',
-                                        'FEDEX_2_DAY': '2 business days',
-                                        'FEDEX_2_DAY_AM': '2 business days by 10:30 AM',
-                                        'STANDARD_OVERNIGHT': 'Next business day by 3 PM',
-                                        'PRIORITY_OVERNIGHT': 'Next business day by 10:30 AM'
+                                        'FEDEX_2_DAY': '2 business days'
                                     }
                                     transit_time = transit_map.get(service_code, 'N/A')
                                 
