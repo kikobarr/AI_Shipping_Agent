@@ -3,7 +3,7 @@ from services.langchain_agent import LangChainFedExAgent
 from datetime import datetime
 import time
 
-# Professional font styling
+# Professional font styling with high contrast accessibility
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -12,60 +12,169 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     
+    /* High contrast status boxes */
     .status-box {
         padding: 1rem;
         border-radius: 8px;
         margin: 1rem 0;
         font-family: 'Inter', sans-serif;
-        font-weight: 500;
+        font-weight: 600;
+        border: 2px solid;
     }
     
     .status-connected {
-        background-color: #d1fae5;
-        border: 1px solid #a7f3d0;
-        color: #065f46;
+        background-color: #000000;
+        border-color: #00ff00;
+        color: #00ff00;
     }
     
     .status-disconnected {
-        background-color: #fee2e2;
-        border: 1px solid #fca5a5;
-        color: #991b1b;
+        background-color: #000000;
+        border-color: #ff0000;
+        color: #ff0000;
     }
     
+    /* High contrast message bubbles */
     .user-message, .assistant-message {
         padding: 1rem;
         margin: 0.5rem 0;
         border-radius: 8px;
         font-family: 'Inter', sans-serif;
+        border: 2px solid;
+        font-weight: 500;
     }
     
     .user-message {
-        background-color: #eff6ff;
-        border-left: 4px solid #3b82f6;
+        background-color: #000080;
+        border-color: #ffffff;
+        color: #ffffff;
     }
     
     .assistant-message {
-        background-color: #f9fafb;
-        border-left: 4px solid #10b981;
+        background-color: #000000;
+        border-color: #00ff00;
+        color: #ffffff;
     }
     
-    .tool-call-indicator {
-        background-color: #fef3c7;
-        border: 1px solid #f59e0b;
-        border-radius: 6px;
-        padding: 0.5rem;
-        margin: 0.5rem 0;
-        font-size: 0.9rem;
-        color: #92400e;
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+        .status-connected {
+            background-color: #000000;
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+        
+        .status-disconnected {
+            background-color: #000000;
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+        
+        .user-message {
+            background-color: #000080;
+            border-color: #ffffff;
+            color: #ffffff;
+        }
+        
+        .assistant-message {
+            background-color: #000000;
+            border-color: #00ff00;
+            color: #ffffff;
+        }
     }
     
-    .model-selector {
-        background-color: #f8fafc;
-        padding: 0.5rem;
-        border-radius: 6px;
-        margin-bottom: 1rem;
-        font-size: 0.9rem;
-        color: #6b7280;
+    /* Light mode high contrast */
+    @media (prefers-color-scheme: light) {
+        .status-connected {
+            background-color: #ffffff;
+            border-color: #008000;
+            color: #008000;
+        }
+        
+        .status-disconnected {
+            background-color: #ffffff;
+            border-color: #cc0000;
+            color: #cc0000;
+        }
+        
+        .user-message {
+            background-color: #ffffff;
+            border-color: #000080;
+            color: #000080;
+        }
+        
+        .assistant-message {
+            background-color: #ffffff;
+            border-color: #008000;
+            color: #008000;
+        }
+    }
+    
+    /* High contrast text and links */
+    .stMarkdown p, .stMarkdown li {
+        color: var(--text-color) !important;
+        font-weight: 500;
+    }
+    
+    /* High contrast buttons */
+    .stButton > button {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 2px solid #ffffff !important;
+        font-weight: 600 !important;
+    }
+    
+    .stButton > button:hover {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 2px solid #000000 !important;
+    }
+    
+    /* High contrast form inputs */
+    .stTextInput > div > div > input {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 2px solid #000000 !important;
+        font-weight: 500 !important;
+    }
+    
+    /* High contrast expander */
+    .streamlit-expanderHeader {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 2px solid #ffffff !important;
+        font-weight: 600 !important;
+    }
+    
+    /* High contrast success/error messages */
+    .stSuccess {
+        background-color: #000000 !important;
+        color: #00ff00 !important;
+        border: 2px solid #00ff00 !important;
+    }
+    
+    .stError {
+        background-color: #000000 !important;
+        color: #ff0000 !important;
+        border: 2px solid #ff0000 !important;
+    }
+    
+    .stWarning {
+        background-color: #000000 !important;
+        color: #ffff00 !important;
+        border: 2px solid #ffff00 !important;
+    }
+    
+    /* High contrast headers */
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-color) !important;
+        font-weight: 700 !important;
+    }
+    
+    /* Ensure good contrast for small text */
+    small, .caption {
+        color: var(--text-color) !important;
+        font-weight: 500 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -88,26 +197,7 @@ if 'messages' not in st.session_state:
 if 'connected' not in st.session_state:
     st.session_state.connected = False
 
-st.header("🤖 AI Shipping Assistant with Live FedEx API")
-
-# Model selector and tools indicator
-col1, col2 = st.columns([3, 1])
-with col1:
-    st.markdown("""
-    <div class="tool-call-indicator">
-        🛠️ <strong>Enhanced with Tools:</strong> This AI can get live FedEx shipping quotes using real API data!
-    </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-    model_option = st.selectbox(
-        "Model",
-        ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"],
-        index=0,
-        help="Select the OpenAI model to use"
-    )
-    if model_option != st.session_state.langchain_agent.model:
-        st.session_state.langchain_agent.set_model(model_option)
+st.header("AI Shipping Assistant with Live FedEx API")
 
 # Status box
 status_class = "status-connected" if st.session_state.connected else "status-disconnected"
@@ -130,12 +220,7 @@ if not st.session_state.connected:
 if not st.session_state.messages:
     st.markdown("""
     ### 💡 Try asking me:
-    - "How much does it cost to ship a 5lb package from 913 Paseo Camarillo, Camarillo, CA 93010 to 1 Harpst St, Arcata, CA 95521?"
-    - "I need overnight shipping from 123 Main St, New York, NY 10001 to 456 Ocean Dr, Miami, FL 33139, what are my options?"
-    - "Compare all FedEx services for a 10lb box from 789 State St, Chicago, IL 60601 to 321 Pine Ave, Seattle, WA 98101"
-    - "What's the cheapest way to ship from California to Georgia?" (I'll ask for complete addresses)
-    
-    **💡 Tip:** I need complete street addresses for accurate FedEx pricing!
+    How much does it cost to ship a 5lb package (4 x 5 x 7in) from 913 Paseo Camarillo, Camarillo, CA 93010 to 1 Harpst St, Arcata, CA 95521?
     """)
 
 # Chat history
@@ -146,12 +231,10 @@ for message in st.session_state.messages:
     
     # Check if this is a tool-calling response
     content = message["content"]
-    if "FedEx Shipping Quote" in content or "FedEx API" in content:
-        icon = "🚚"  # Use truck icon for FedEx responses
     
     st.markdown(f"""
     <div class="{msg_type}">
-        <strong>{icon} {label}:</strong> {content}
+        <strong>{label}:</strong> {content}
         <small style="float: right; color: #666;">{message["timestamp"]}</small>
     </div>
     """, unsafe_allow_html=True)
@@ -212,15 +295,10 @@ with st.form("chat_form", clear_on_submit=True):
 # Clear chat button and memory info
 col1, col2 = st.columns([1, 3])
 with col1:
-    if st.button("🗑️ Clear Chat", use_container_width=False):
+    if st.button("Clear Chat", use_container_width=False):
         st.session_state.messages = []
         st.session_state.langchain_agent.clear_memory()
         st.rerun()
-
-with col2:
-    if st.session_state.connected:
-        memory_info = st.session_state.langchain_agent.get_memory_summary()
-        st.caption(f"💭 {memory_info}")
 
 # Footer
 st.markdown("---")

@@ -6,7 +6,7 @@ import random
 
 st.set_page_config(page_title="Shipping Dashboard", layout="wide")
 
-# Professional styling
+# Professional styling with high contrast accessibility
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -18,35 +18,103 @@ st.markdown("""
     .main-title {
         font-size: 2.5rem;
         font-weight: 700;
-        color: #1f2937;
+        color: var(--text-color);
         margin-bottom: 2rem;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
 
     .metric-card {
-        background-color: #f8fafc;
+        background-color: #000000;
+        color: #ffffff;
+        border: 3px solid #ffffff;
         padding: 1.5rem;
         border-radius: 12px;
-        border: 1px solid #e5e7eb;
         text-align: center;
+        font-weight: 600;
     }
 
     .metric-value {
         font-size: 2rem;
         font-weight: 700;
-        color: #1e40af;
+        color: #00ff00;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
     }
 
     .metric-label {
-        color: #6b7280;
-        font-size: 0.9rem;
+        color: #ffffff;
+        font-size: 1rem;
         margin-top: 0.5rem;
+        font-weight: 600;
     }
 
     .section-header {
         font-size: 1.5rem;
-        font-weight: 600;
-        color: #374151;
+        font-weight: 700;
+        color: var(--text-color);
         margin: 2rem 0 1rem 0;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    
+    /* Light mode high contrast */
+    @media (prefers-color-scheme: light) {
+        .metric-card {
+            background-color: #ffffff;
+            color: #000000;
+            border: 3px solid #000000;
+        }
+        
+        .metric-value {
+            color: #008000;
+        }
+        
+        .metric-label {
+            color: #000000;
+        }
+    }
+    
+    /* Dark mode high contrast */
+    @media (prefers-color-scheme: dark) {
+        .metric-card {
+            background-color: #000000;
+            color: #ffffff;
+            border: 3px solid #ffffff;
+        }
+        
+        .metric-value {
+            color: #00ff00;
+        }
+        
+        .metric-label {
+            color: #ffffff;
+        }
+    }
+    
+    /* High contrast buttons */
+    .stButton > button {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 2px solid #ffffff !important;
+        font-weight: 600 !important;
+    }
+    
+    .stButton > button:hover {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 2px solid #000000 !important;
+    }
+    
+    /* High contrast dataframes */
+    .stDataFrame {
+        border: 2px solid var(--text-color) !important;
+    }
+    
+    /* High contrast text */
+    .stMarkdown p, .stMarkdown li {
+        font-weight: 500 !important;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 700 !important;
     }
 </style>
 """, unsafe_allow_html=True)
