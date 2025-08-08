@@ -61,8 +61,8 @@ with col2:
         switch_page("3_Shipping")  # Assuming same page handles both
 
 with col3:
-    if st.button("Talk to Chatbot", use_container_width=True):
-        switch_page("2_Chatbot")
+    if st.button("Talk to AI Agent", use_container_width=True):
+        switch_page("2_AI_Agent")
 
 st.divider()
 
