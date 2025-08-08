@@ -6,119 +6,6 @@ import random
 
 st.set_page_config(page_title="Shipping Dashboard", layout="wide")
 
-# Professional styling with high contrast accessibility
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-    }
-
-    .main-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: var(--text-color);
-        margin-bottom: 2rem;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    }
-
-    .metric-card {
-        background-color: #000000;
-        color: #ffffff;
-        border: 3px solid #ffffff;
-        padding: 1.5rem;
-        border-radius: 12px;
-        text-align: center;
-        font-weight: 600;
-    }
-
-    .metric-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #00ff00;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-    }
-
-    .metric-label {
-        color: #ffffff;
-        font-size: 1rem;
-        margin-top: 0.5rem;
-        font-weight: 600;
-    }
-
-    .section-header {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-color);
-        margin: 2rem 0 1rem 0;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    }
-    
-    /* Light mode high contrast */
-    @media (prefers-color-scheme: light) {
-        .metric-card {
-            background-color: #ffffff;
-            color: #000000;
-            border: 3px solid #000000;
-        }
-        
-        .metric-value {
-            color: #008000;
-        }
-        
-        .metric-label {
-            color: #000000;
-        }
-    }
-    
-    /* Dark mode high contrast */
-    @media (prefers-color-scheme: dark) {
-        .metric-card {
-            background-color: #000000;
-            color: #ffffff;
-            border: 3px solid #ffffff;
-        }
-        
-        .metric-value {
-            color: #00ff00;
-        }
-        
-        .metric-label {
-            color: #ffffff;
-        }
-    }
-    
-    /* High contrast buttons */
-    .stButton > button {
-        background-color: #000000 !important;
-        color: #ffffff !important;
-        border: 2px solid #ffffff !important;
-        font-weight: 600 !important;
-    }
-    
-    .stButton > button:hover {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 2px solid #000000 !important;
-    }
-    
-    /* High contrast dataframes */
-    .stDataFrame {
-        border: 2px solid var(--text-color) !important;
-    }
-    
-    /* High contrast text */
-    .stMarkdown p, .stMarkdown li {
-        font-weight: 500 !important;
-    }
-    
-    h1, h2, h3, h4, h5, h6 {
-        font-weight: 700 !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 st.markdown('<div class="main-title">📊 Shipping Dashboard</div>', unsafe_allow_html=True)
 
 # Generate sample shipping data for demonstration
@@ -151,49 +38,31 @@ def generate_sample_data():
 df = generate_sample_data()
 df['date'] = pd.to_datetime(df['date'])
 
+st.title("📊 Shipping Dashboard")
+
 # Key Metrics Section
-st.markdown('<div class="section-header">📈 Key Metrics (Last 30 Days)</div>', unsafe_allow_html=True)
+st.subheader("📈 Key Metrics (Last 30 Days)")
 
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     total_shipments = len(df)
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-value">{total_shipments:,}</div>
-        <div class="metric-label">Total Shipments</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.metric("Total Shipments", f"{total_shipments:,}")
 
 with col2:
     total_cost = df['cost'].sum()
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-value">${total_cost:,.0f}</div>
-        <div class="metric-label">Total Shipping Cost</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.metric("Total Shipping Cost", f"${total_cost:,.0f}")
 
 with col3:
     avg_cost = df['cost'].mean()
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-value">${avg_cost:.2f}</div>
-        <div class="metric-label">Average Cost per Shipment</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.metric("Average Cost per Shipment", f"${avg_cost:.2f}")
 
 with col4:
     delivered_rate = (df['status'] == 'Delivered').mean() * 100
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-value">{delivered_rate:.1f}%</div>
-        <div class="metric-label">Delivery Success Rate</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.metric("Delivery Success Rate", f"{delivered_rate:.1f}%")
 
 # Daily Shipping Volume Chart
-st.markdown('<div class="section-header">📦 Daily Shipping Volume</div>', unsafe_allow_html=True)
+st.subheader("📦 Daily Shipping Volume")
 
 daily_volume = df.groupby('date').size().reset_index(name='shipments')
 daily_cost = df.groupby('date')['cost'].sum().reset_index()
@@ -214,7 +83,7 @@ st.altair_chart(volume_chart, use_container_width=True)
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown('<div class="section-header">🚚 Service Usage</div>', unsafe_allow_html=True)
+    st.subheader("🚚 Service Usage")
     
     service_usage = df['service'].value_counts().reset_index()
     service_usage.columns = ['Service', 'Count']
@@ -231,7 +100,7 @@ with col1:
     st.altair_chart(service_chart, use_container_width=True)
 
 with col2:
-    st.markdown('<div class="section-header">💰 Cost by Service</div>', unsafe_allow_html=True)
+    st.subheader("💰 Cost by Service")
     
     service_cost = df.groupby('service')['cost'].mean().reset_index()
     service_cost = service_cost.sort_values('cost', ascending=True)
@@ -248,7 +117,7 @@ with col2:
     st.altair_chart(cost_chart, use_container_width=True)
 
 # Geographic Analysis
-st.markdown('<div class="section-header">🗺️ Geographic Distribution</div>', unsafe_allow_html=True)
+st.subheader("🗺️ Geographic Distribution")
 
 col1, col2 = st.columns(2)
 
@@ -265,7 +134,7 @@ with col2:
     st.dataframe(dest_stats, use_container_width=True, hide_index=True)
 
 # Recent Activity
-st.markdown('<div class="section-header">📋 Recent Shipping Activity</div>', unsafe_allow_html=True)
+st.subheader("📋 Recent Shipping Activity")
 
 recent_shipments = df.sort_values('date', ascending=False).head(10)
 display_df = recent_shipments[['date', 'service', 'cost', 'weight', 'origin_state', 'destination_state', 'status']].copy()
@@ -275,7 +144,7 @@ display_df.columns = ['Date', 'Service', 'Cost ($)', 'Weight (lbs)', 'Origin', '
 st.dataframe(display_df, use_container_width=True, hide_index=True)
 
 # Quick Actions
-st.markdown('<div class="section-header">🚀 Quick Actions</div>', unsafe_allow_html=True)
+st.subheader("🚀 Quick Actions")
 
 col1, col2, col3 = st.columns(3)
 

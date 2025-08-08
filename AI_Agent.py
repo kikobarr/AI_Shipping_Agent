@@ -3,188 +3,12 @@ from services.langchain_agent import LangChainFedExAgent
 from datetime import datetime
 import time
 
-# Professional font styling with high contrast accessibility
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    
-    html, body, [class*="css"] {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    
-    /* High contrast status boxes */
-    .status-box {
-        padding: 1rem;
-        border-radius: 8px;
-        margin: 1rem 0;
-        font-family: 'Inter', sans-serif;
-        font-weight: 600;
-        border: 2px solid;
-    }
-    
-    .status-connected {
-        background-color: #000000;
-        border-color: #00ff00;
-        color: #00ff00;
-    }
-    
-    .status-disconnected {
-        background-color: #000000;
-        border-color: #ff0000;
-        color: #ff0000;
-    }
-    
-    /* High contrast message bubbles */
-    .user-message, .assistant-message {
-        padding: 1rem;
-        margin: 0.5rem 0;
-        border-radius: 8px;
-        font-family: 'Inter', sans-serif;
-        border: 2px solid;
-        font-weight: 500;
-    }
-    
-    .user-message {
-        background-color: #000080;
-        border-color: #ffffff;
-        color: #ffffff;
-    }
-    
-    .assistant-message {
-        background-color: #000000;
-        border-color: #00ff00;
-        color: #ffffff;
-    }
-    
-    /* Dark mode support */
-    @media (prefers-color-scheme: dark) {
-        .status-connected {
-            background-color: #000000;
-            border-color: #00ff00;
-            color: #00ff00;
-        }
-        
-        .status-disconnected {
-            background-color: #000000;
-            border-color: #ff0000;
-            color: #ff0000;
-        }
-        
-        .user-message {
-            background-color: #000080;
-            border-color: #ffffff;
-            color: #ffffff;
-        }
-        
-        .assistant-message {
-            background-color: #000000;
-            border-color: #00ff00;
-            color: #ffffff;
-        }
-    }
-    
-    /* Light mode high contrast */
-    @media (prefers-color-scheme: light) {
-        .status-connected {
-            background-color: #ffffff;
-            border-color: #008000;
-            color: #008000;
-        }
-        
-        .status-disconnected {
-            background-color: #ffffff;
-            border-color: #cc0000;
-            color: #cc0000;
-        }
-        
-        .user-message {
-            background-color: #ffffff;
-            border-color: #000080;
-            color: #000080;
-        }
-        
-        .assistant-message {
-            background-color: #ffffff;
-            border-color: #008000;
-            color: #008000;
-        }
-    }
-    
-    /* High contrast text and links */
-    .stMarkdown p, .stMarkdown li {
-        color: var(--text-color) !important;
-        font-weight: 500;
-    }
-    
-    /* High contrast buttons */
-    .stButton > button {
-        background-color: #000000 !important;
-        color: #ffffff !important;
-        border: 2px solid #ffffff !important;
-        font-weight: 600 !important;
-    }
-    
-    .stButton > button:hover {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 2px solid #000000 !important;
-    }
-    
-    /* High contrast form inputs */
-    .stTextInput > div > div > input {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 2px solid #000000 !important;
-        font-weight: 500 !important;
-    }
-    
-    /* High contrast expander */
-    .streamlit-expanderHeader {
-        background-color: #000000 !important;
-        color: #ffffff !important;
-        border: 2px solid #ffffff !important;
-        font-weight: 600 !important;
-    }
-    
-    /* High contrast success/error messages */
-    .stSuccess {
-        background-color: #000000 !important;
-        color: #00ff00 !important;
-        border: 2px solid #00ff00 !important;
-    }
-    
-    .stError {
-        background-color: #000000 !important;
-        color: #ff0000 !important;
-        border: 2px solid #ff0000 !important;
-    }
-    
-    .stWarning {
-        background-color: #000000 !important;
-        color: #ffff00 !important;
-        border: 2px solid #ffff00 !important;
-    }
-    
-    /* High contrast headers */
-    h1, h2, h3, h4, h5, h6 {
-        color: var(--text-color) !important;
-        font-weight: 700 !important;
-    }
-    
-    /* Ensure good contrast for small text */
-    small, .caption {
-        color: var(--text-color) !important;
-        font-weight: 500 !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 # Load CSS
 try:
     with open("styles/chat_ui.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 except FileNotFoundError:
-    pass  # CSS file not found, continue with inline styles
+    pass  # CSS file not found, continue with default styling
 
 # Initialize session state
 if 'langchain_agent' not in st.session_state:
@@ -200,13 +24,10 @@ if 'connected' not in st.session_state:
 st.header("AI Shipping Assistant with Live FedEx API")
 
 # Status box
-status_class = "status-connected" if st.session_state.connected else "status-disconnected"
-status_text = "🟢 Connected to OpenAI + FedEx API" if st.session_state.connected else "🔴 Not Connected"
-st.markdown(f"""
-<div class="status-box {status_class}">
-    {status_text}
-</div>
-""", unsafe_allow_html=True)
+if st.session_state.connected:
+    st.success("🟢 Connected to OpenAI + FedEx API")
+else:
+    st.error("🔴 Not Connected")
 
 if not st.session_state.connected:
     st.error(f"Connection Error: {st.session_state.connection_message}")
@@ -225,22 +46,17 @@ if not st.session_state.messages:
 
 # Chat history
 for message in st.session_state.messages:
-    msg_type = "user-message" if message["role"] == "user" else "assistant-message"
-    label = "You" if message["role"] == "user" else "AI Assistant"
-    icon = "👤" if message["role"] == "user" else "🤖"
-    
-    # Check if this is a tool-calling response
+    role = message["role"]
     content = message["content"]
+    timestamp = message["timestamp"]
     
-    st.markdown(f"""
-    <div class="{msg_type}">
-        <strong>{label}:</strong> {content}
-        <small style="float: right; color: #666;">{message["timestamp"]}</small>
-    </div>
-    """, unsafe_allow_html=True)
+    # Use Streamlit's built-in chat message display
+    with st.chat_message(role):
+        st.write(content)
+        st.caption(f"⏰ {timestamp}")
     
     # Show debug information for assistant messages if available
-    if message["role"] == "assistant" and "debug_info" in message:
+    if role == "assistant" and "debug_info" in message:
         debug_info = message["debug_info"]
         if debug_info.get("tool_calls_made", False):
             with st.expander(f"🔍 Debug Info - Tools Used ({len(debug_info.get('tools_used', []))})"):

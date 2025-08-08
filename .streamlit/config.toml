@@ -1,7 +1,13 @@
 [theme]
-base = "dark"
-primaryColor = "#36a9e1"             # Elastic Cyan
-backgroundColor = "#1b1d1e"          # Dark background
-secondaryBackgroundColor = "#2a2e33" # Panel/card dark gray
-textColor = "#f5f7fa"                # Light text for readability
+primaryColor = "#00ff00"              # Bright green success vibe
+backgroundColor = "#000000"           # Black background
+secondaryBackgroundColor = "#101010"  # Slightly lighter for contrast
+textColor = "#ffffff"                 # White text
+font = "sans serif"
+
+[theme]
+primaryColor = "#008000"              # Dark green success
+backgroundColor = "#ffffff"           # White background
+secondaryBackgroundColor = "#f0f0f0"  # Light gray for subtle borders
+textColor = "#000000"                 # Black text
 font = "sans serif"
