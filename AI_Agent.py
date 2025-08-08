@@ -9,6 +9,25 @@ from services.shipping_integration import (
 from datetime import datetime
 import time
 
+# Configure as single page app
+st.set_page_config(
+    page_title="AI Shipping Assistant", 
+    page_icon="🚚",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# Hide sidebar completely
+st.markdown("""
+<style>
+    .css-1d391kg {display: none}
+    .css-1rs6os {display: none}
+    .css-17eq0hr {display: none}
+    [data-testid="stSidebar"] {display: none}
+    [data-testid="collapsedControl"] {display: none}
+</style>
+""", unsafe_allow_html=True)
+
 # Load CSS
 try:
     with open("styles/chat_ui.css") as f:
@@ -117,15 +136,10 @@ with st.form("chat_form", clear_on_submit=True):
 # Clear chat button and memory info
 col1, col2 = st.columns([1, 3])
 with col1:
-    if st.button("Clear Chat", use_container_width=False):
+    if st.button("🗑️ Clear Chat", use_container_width=True):
         st.session_state.messages = []
         st.session_state.langchain_agent.clear_memory()
         st.rerun()
-
-with col2:
-    if st.session_state.connected:
-        memory_info = st.session_state.langchain_agent.get_memory_summary()
-        st.caption(f"💭 {memory_info}")
 
 # Shipping Form Section
 st.markdown("---")
