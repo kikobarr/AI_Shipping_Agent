@@ -92,11 +92,11 @@ if 'messages' not in st.session_state:
 if 'connected' not in st.session_state:
     st.session_state.connected = False
 
-st.header("AI Shipping Assistant with Live FedEx API")
+st.header("AI Shipping Assistant with FedEx API")
 
 # Status box
 if st.session_state.connected:
-    st.success("Connected to OpenAI + FedEx API")
+    st.success("**Try asking me:** Get all FedEx quotes for 9lb package (4 x 5 x 7in) from 913 Paseo Camarillo, Camarillo, CA 93010 to 1 Harpst St, Arcata, CA 95521")
 else:
     st.error("Not Connected")
 
@@ -107,13 +107,6 @@ if not st.session_state.connected:
         st.session_state.connected = success
         st.session_state.connection_message = message
         st.rerun()
-
-# Example prompts for users
-if not st.session_state.messages:
-    st.markdown("""
-    **Try asking me:**
-    Get all FedEx quotes for 9lb package (4 x 5 x 7in) from 913 Paseo Camarillo, Camarillo, CA 93010 to 1 Harpst St, Arcata, CA 95521
-    """)
 
 # Chat history
 for message in st.session_state.messages:
@@ -258,7 +251,7 @@ with st.form("fedex_shipping_form"):
 if submit:
     dimensions = {"length": length, "width": width, "height": height}
 
-    with st.spinner("Fetching live FedEx rates..."):
+    with st.spinner("Fetching FedEx rates..."):
         # Use the FedEx-only shipping integration with default packaging
         results = get_fedex_shipping_quotes(
             origin, destination, weight, dimensions, "YOUR_PACKAGING"
@@ -283,4 +276,4 @@ if submit:
 
 # Footer
 st.markdown("---")
-st.markdown("*Powered by OpenAI GPT + LangChain + Live FedEx API • Built with Streamlit*")
+st.markdown("*Powered by OpenAI GPT + LangChain + FedEx Sandbox API • Built with Streamlit*")
