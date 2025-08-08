@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Hide sidebar completely
+# Hide sidebar completely and optimize chat layout
 st.markdown("""
 <style>
     .css-1d391kg {display: none}
@@ -26,26 +26,44 @@ st.markdown("""
     [data-testid="stSidebar"] {display: none}
     [data-testid="collapsedControl"] {display: none}
     
-    /* Copy button styling */
-    .copy-button {
-        background-color: #f0f2f6;
-        border: 1px solid #d1d5db;
-        border-radius: 4px;
-        padding: 4px 8px;
-        font-size: 12px;
-        cursor: pointer;
-        margin-left: 8px;
-        display: inline-block;
-        color: #374151;
+    /* Make chat input wider and more prominent */
+    .stTextInput > div > div > input {
+        font-size: 16px !important;
+        padding: 12px 16px !important;
+        border-radius: 8px !important;
+        border: 2px solid #e1e5e9 !important;
     }
     
-    .copy-button:hover {
-        background-color: #e5e7eb;
-        border-color: #9ca3af;
+    .stTextInput > div > div > input:focus {
+        border-color: #ff4b4b !important;
+        box-shadow: 0 0 0 1px #ff4b4b !important;
     }
     
-    .copy-button:active {
-        background-color: #d1d5db;
+    /* Make chat messages use full width */
+    [data-testid="chatMessage"] {
+        max-width: none !important;
+        width: 100% !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Optimize form layout - remove borders and padding */
+    .stForm {
+        border: none !important;
+        padding: 0 !important;
+        background: none !important;
+    }
+    
+    /* Make the main container wider */
+    .main .block-container {
+        max-width: none !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+    }
+    
+    /* Improve chat message spacing */
+    [data-testid="chatMessage"] > div {
+        padding: 1rem !important;
+        margin-bottom: 0.5rem !important;
     }
     
     .package-details {
@@ -54,77 +72,6 @@ st.markdown("""
     }
 </style>
 
-<script>
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(function() {
-        // Show success feedback
-        const button = event.target;
-        const originalText = button.textContent;
-        button.textContent = '✓ Copied!';
-        button.style.backgroundColor = '#10b981';
-        button.style.color = 'white';
-        
-        setTimeout(() => {
-            button.textContent = originalText;
-            button.style.backgroundColor = '#f0f2f6';
-            button.style.color = '#374151';
-        }, 2000);
-    }).catch(function(err) {
-        console.error('Could not copy text: ', err);
-        alert('Copy failed. Please select and copy manually.');
-    });
-}
-
-// Add copy buttons to package details after page loads
-document.addEventListener('DOMContentLoaded', function() {
-    addCopyButtons();
-});
-
-// Also run when Streamlit reruns
-window.addEventListener('load', function() {
-    setTimeout(addCopyButtons, 100);
-});
-
-function addCopyButtons() {
-    // Find all chat messages
-    const chatMessages = document.querySelectorAll('[data-testid="chatMessage"]');
-    
-    chatMessages.forEach(message => {
-        const messageText = message.textContent || message.innerText;
-        
-        // Look for package details pattern
-        const packageMatch = messageText.match(/(\d+(?:\.\d+)?lb package \([^)]+\) from [^\\n]+to [^\\n]+)/);
-        
-        if (packageMatch && !message.querySelector('.copy-button')) {
-            const packageDetails = packageMatch[1];
-            const messageContent = message.querySelector('[data-testid="chatMessageContent"]');
-            
-            if (messageContent) {
-                // Create copy button
-                const copyButton = document.createElement('button');
-                copyButton.className = 'copy-button';
-                copyButton.textContent = '📋 Copy';
-                copyButton.onclick = () => copyToClipboard(packageDetails);
-                copyButton.title = 'Copy package details';
-                
-                // Insert button after the package details line
-                const lines = messageContent.innerHTML.split('\\n');
-                for (let i = 0; i < lines.length; i++) {
-                    if (lines[i].includes('Package:') && lines[i].includes('lbs,') && lines[i].includes('inches')) {
-                        lines[i] += '<button class="copy-button" onclick="copyToClipboard(\'' + 
-                                   packageDetails.replace(/'/g, "\\\\'") + '\')" title="Copy package details">📋 Copy</button>';
-                        break;
-                    }
-                }
-                messageContent.innerHTML = lines.join('\\n');
-            }
-        }
-    });
-}
-
-// Run periodically to catch new messages
-setInterval(addCopyButtons, 1000);
-</script>
 """, unsafe_allow_html=True)
 
 # Load CSS
@@ -164,8 +111,8 @@ if not st.session_state.connected:
 # Example prompts for users
 if not st.session_state.messages:
     st.markdown("""
-    **Try asking me:** All FedEx quotes for 9lb package (4 x 5 x 7in) from 
-                913 Paseo Camarillo, Camarillo, CA 93010 to 1 Harpst St, Arcata, CA 95521
+    **Try asking me:**
+    Get all FedEx quotes for 9lb package (4 x 5 x 7in) from 913 Paseo Camarillo, Camarillo, CA 93010 to 1 Harpst St, Arcata, CA 95521
     """)
 
 # Chat history
@@ -215,30 +162,31 @@ for message in st.session_state.messages:
                     st.code(copyable_text, language=None)
                     st.success("📋 Details ready to copy! Select the text above.")
             
-        st.caption(f"⏰ {timestamp}")
     
     # Show debug information for assistant messages if available
     if role == "assistant" and "debug_info" in message:
         debug_info = message["debug_info"]
         if debug_info.get("tool_calls_made", False):
-            with st.expander(f"🔍 Debug Info - Tools Used ({len(debug_info.get('tools_used', []))})"):
-                st.success("✅ AI Agent successfully called FedEx API tools")
+            with st.expander(f"Debug Info - Tools Used ({len(debug_info.get('tools_used', []))})"):
+                st.success("AI Agent successfully called FedEx API tools")
                 for i, tool_info in enumerate(debug_info.get('tools_used', []), 1):
                     st.write(f"**Tool {i}: {tool_info['tool']}**")
                     st.json(tool_info['input'])
                     st.text_area(f"Tool Output {i}:", tool_info['output'], height=100)
         else:
-            with st.expander("⚠️ Debug Info - No Tools Used"):
+            with st.expander("Debug Info - No Tools Used"):
                 st.warning("AI did not call any tools for this response. This might indicate hallucination.")
                 if "error" in debug_info:
                     st.error(f"Error: {debug_info['error']}")
 
 # Chat input
 with st.form("chat_form", clear_on_submit=True):
-    col1, col2 = st.columns([4, 1])
+    # Use wider ratio for chat input - more space for typing
+    col1, col2 = st.columns([6, 1])
     user_input = col1.text_input(
         "Ask about shipping rates, compare services, or get FedEx quotes...", 
-        label_visibility="collapsed"
+        label_visibility="collapsed",
+        placeholder="Type your shipping question here..."
     )
     send_button = col2.form_submit_button("Send", use_container_width=True)
 
@@ -286,7 +234,7 @@ with st.form("fedex_shipping_form"):
             "postalCode": st.text_input("Postal Code", value="93010", key="origin_postal")
         }
     with col2:
-        st.subheader("📍 Destination Address")
+        st.subheader("Destination Address")
         destination = {
             "street": st.text_input("Street", value="1 Harpst St", key="dest_street"),
             "apt": st.text_input("Apt / Suite", value="", key="dest_apt"),
@@ -304,13 +252,13 @@ with st.form("fedex_shipping_form"):
         width = st.number_input("Width (in)", min_value=1.0, step=0.5, format="%.1f", value=5.0, key="package_width")
         height = st.number_input("Height (in)", min_value=1.0, step=0.5, format="%.1f", value=7.0, key="package_height")
 
-    submit = st.form_submit_button("🔍 Get FedEx Shipping Quotes", use_container_width=True)
+    submit = st.form_submit_button("Get FedEx Shipping Quotes", use_container_width=True)
 
 # Handle Form Submission
 if submit:
     dimensions = {"length": length, "width": width, "height": height}
 
-    with st.spinner("🔄 Fetching live FedEx rates..."):
+    with st.spinner("Fetching live FedEx rates..."):
         # Use the FedEx-only shipping integration with default packaging
         results = get_fedex_shipping_quotes(
             origin, destination, weight, dimensions, "YOUR_PACKAGING"
