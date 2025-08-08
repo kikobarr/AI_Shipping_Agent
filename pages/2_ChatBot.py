@@ -1,5 +1,5 @@
 import streamlit as st
-from services.aws_agent_connector import AWSAgentConnector
+from services.openai_connector import OpenAIConnector
 from datetime import datetime
 import time
 
@@ -10,39 +10,6 @@ st.markdown("""
     
     html, body, [class*="css"] {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    
-    .navbar {
-        background-color: #f8fafc;
-        padding: 1rem 2rem;
-        border-bottom: 1px solid #e2e8f0;
-        margin-bottom: 2rem;
-        font-family: 'Inter', sans-serif;
-    }
-    
-    .navbar h2 {
-        font-family: 'Inter', sans-serif;
-        font-weight: 600;
-        color: #1f2937;
-        margin: 0;
-        display: inline-block;
-    }
-    
-    .nav-links {
-        float: right;
-        font-family: 'Inter', sans-serif;
-    }
-    
-    .nav-links a {
-        margin-left: 2rem;
-        text-decoration: none;
-        color: #4b5563;
-        font-weight: 500;
-        transition: color 0.2s ease;
-    }
-    
-    .nav-links a:hover {
-        color: #3b82f6;
     }
     
     .status-box {
@@ -65,7 +32,7 @@ st.markdown("""
         color: #991b1b;
     }
     
-    .user-message, .agent-message {
+    .user-message, .assistant-message {
         padding: 1rem;
         margin: 0.5rem 0;
         border-radius: 8px;
@@ -77,9 +44,18 @@ st.markdown("""
         border-left: 4px solid #3b82f6;
     }
     
-    .agent-message {
+    .assistant-message {
         background-color: #f9fafb;
-        border-left: 4px solid #6b7280;
+        border-left: 4px solid #10b981;
+    }
+    
+    .model-selector {
+        background-color: #f8fafc;
+        padding: 0.5rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: #6b7280;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -91,69 +67,57 @@ try:
 except FileNotFoundError:
     pass  # CSS file not found, continue with inline styles
 
-# === NAVBAR ===
-st.markdown("""
-<div class="navbar">
-    <h2>Shipping Assistant</h2>
-    <div class="nav-links">
-        <a href="/Home" target="_self">Home</a>
-        <a href="/Chatbot" target="_self">Chatbot</a>
-        <a href="https://aws.amazon.com/bedrock/" target="_blank">AWS Bedrock</a>
-        <a href="mailto:support@example.com">Contact</a>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
 # Initialize session state
-if 'agent_connector' not in st.session_state:
-    st.session_state.agent_connector = AWSAgentConnector()
-    success, message = st.session_state.agent_connector.initialize_connection()
+if 'openai_connector' not in st.session_state:
+    st.session_state.openai_connector = OpenAIConnector()
+    success, message = st.session_state.openai_connector.initialize_connection()
     st.session_state.connected = success
+    st.session_state.connection_message = message
 if 'messages' not in st.session_state:
     st.session_state.messages = []
-if 'session_id' not in st.session_state:
-    st.session_state.session_id = f"session-{int(time.time())}"
 if 'connected' not in st.session_state:
     st.session_state.connected = False
 
-st.header("Chat with Your Agent")
+st.header("💬 Chat with AI Assistant")
 
-# # Sidebar config
-# with st.sidebar:
-#     st.header("AWS Agent Configuration")
-#     with st.form("aws_config"):
-#         aws_access_key = st.text_input("AWS Access Key ID", type="password")
-#         aws_secret_key = st.text_input("AWS Secret Access Key", type="password")
-#         region = st.selectbox("AWS Region", ["us-east-1", "us-west-2", "eu-west-1", "ap-southeast-1"])
-#         agent_id = st.text_input("Bedrock Agent ID")
-#         agent_alias_id = st.text_input("Agent Alias ID", value="TSTALIASID")
-#         submit_config = st.form_submit_button("Connect to Agent")
-
-#         if submit_config:
-#             if all([aws_access_key, aws_secret_key, region, agent_id]):
-#                 with st.spinner("Connecting to AWS Bedrock Agent..."):
-#                     success, message = st.session_state.agent_connector.initialize_connection(
-#                         aws_access_key, aws_secret_key, region, agent_id, agent_alias_id
-#                     )
-#                     st.session_state.connected = success
-#                     st.success(message) if success else st.error(message)
-#             else:
-#                 st.error("Please fill in all required fields")
+# Model selector
+col1, col2 = st.columns([3, 1])
+with col2:
+    model_option = st.selectbox(
+        "Model",
+        ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"],
+        index=0,
+        help="Select the OpenAI model to use"
+    )
+    if model_option != st.session_state.openai_connector.model:
+        st.session_state.openai_connector.set_model(model_option)
 
 # Status box
+status_class = "status-connected" if st.session_state.connected else "status-disconnected"
+status_text = "🟢 Connected to OpenAI" if st.session_state.connected else "🔴 Not Connected"
 st.markdown(f"""
-<div class="status-box {'status-connected' if st.session_state.connected else 'status-disconnected'}">
-    {'Connected' if st.session_state.connected else 'Not Connected'} 
+<div class="status-box {status_class}">
+    {status_text}
 </div>
 """, unsafe_allow_html=True)
 
+if not st.session_state.connected:
+    st.error(f"Connection Error: {st.session_state.connection_message}")
+    if st.button("🔄 Retry Connection"):
+        success, message = st.session_state.openai_connector.initialize_connection()
+        st.session_state.connected = success
+        st.session_state.connection_message = message
+        st.rerun()
+
 # Chat history
 for message in st.session_state.messages:
-    msg_type = "user-message" if message["role"] == "user" else "agent-message"
-    label = "You" if message["role"] == "user" else "Agent"
+    msg_type = "user-message" if message["role"] == "user" else "assistant-message"
+    label = "You" if message["role"] == "user" else "AI Assistant"
+    icon = "👤" if message["role"] == "user" else "🤖"
+    
     st.markdown(f"""
     <div class="{msg_type}">
-        <strong>{label}:</strong> {message["content"]}
+        <strong>{icon} {label}:</strong> {message["content"]}
         <small style="float: right; color: #666;">{message["timestamp"]}</small>
     </div>
     """, unsafe_allow_html=True)
@@ -161,39 +125,66 @@ for message in st.session_state.messages:
 # Chat input
 with st.form("chat_form", clear_on_submit=True):
     col1, col2 = st.columns([4, 1])
-    user_input = col1.text_input("Ask...", label_visibility="collapsed")
-    send_button = col2.form_submit_button("Send")
+    user_input = col1.text_input("Ask me anything about shipping...", label_visibility="collapsed")
+    send_button = col2.form_submit_button("Send", use_container_width=True)
 
     if send_button and user_input:
         if not st.session_state.connected:
-            st.error("Please connect first.")
+            st.error("Please connect to OpenAI first.")
         else:
             timestamp = datetime.now().strftime("%H:%M:%S")
-            st.session_state.messages.append({"role": "user", "content": user_input, "timestamp": timestamp})
-            with st.spinner("Agent is thinking..."):
-                response = st.session_state.agent_connector.send_message(user_input, st.session_state.session_id)
-            st.session_state.messages.append({"role": "agent", "content": response, "timestamp": datetime.now().strftime("%H:%M:%S")})
+            
+            # Add user message
+            st.session_state.messages.append({
+                "role": "user", 
+                "content": user_input, 
+                "timestamp": timestamp
+            })
+            
+            # Get AI response
+            with st.spinner("🤖 AI is thinking..."):
+                response = st.session_state.openai_connector.send_message(
+                    user_input, 
+                    st.session_state.messages
+                )
+            
+            # Add AI response
+            st.session_state.messages.append({
+                "role": "assistant", 
+                "content": response, 
+                "timestamp": datetime.now().strftime("%H:%M:%S")
+            })
+            
             st.rerun()
 
-# Quick actions
-st.markdown("### Quick Actions")
-col1, col2, col3 = st.columns(3)
-def quick_action(prompt):
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    st.session_state.messages.append({"role": "user", "content": prompt, "timestamp": timestamp})
-    with st.spinner("Agent is responding..."):
-        response = st.session_state.agent_connector.send_message(prompt, st.session_state.session_id)
-    st.session_state.messages.append({"role": "agent", "content": response, "timestamp": datetime.now().strftime("%H:%M:%S")})
+# Clear chat button
+if st.button("🗑️ Clear Chat", use_container_width=False):
+    st.session_state.messages = []
     st.rerun()
 
-with col1:
-    if st.button("Get Shipping Rates", use_container_width=True) and st.session_state.connected:
-        quick_action("Can you help me get shipping rates for a package?")
-with col2:
-    if st.button("Track Package", use_container_width=True) and st.session_state.connected:
-        quick_action("I need help tracking a package. What information do you need?")
-with col3:
-    if st.button("Clear Chat", use_container_width=True):
-        st.session_state.messages = []
-        st.session_state.session_id = f"session-{int(time.time())}"
-        st.rerun()
+# Information section
+with st.expander("ℹ️ About the AI Assistant"):
+    st.markdown(f"""
+    ### 🤖 AI-Powered Shipping Assistant
+    
+    **Current Model:** `{model_option}`
+    
+    **Capabilities:**
+    - 📦 **Shipping Quotes**: Help you understand shipping options and pricing
+    - 🔍 **Package Tracking**: Assist with tracking information and requirements  
+    - 🚚 **Service Explanations**: Explain different shipping services and delivery times
+    - 💡 **General Advice**: Provide shipping and logistics guidance
+    - 🤝 **Interactive Help**: Answer questions in a conversational way
+    
+    **How to Use:**
+    1. Type your question in the chat box
+    2. Use quick action buttons for common requests
+    3. Switch between different AI models for varied responses
+    4. Clear chat history anytime with the Clear Chat button
+    
+    **Note:** This AI assistant is powered by OpenAI's GPT models and provides general shipping guidance. For actual shipping quotes, use the dedicated Shipping page.
+    """)
+
+# Footer
+st.markdown("---")
+st.markdown("*Powered by OpenAI GPT • Built with Streamlit*")
