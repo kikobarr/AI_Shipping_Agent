@@ -1,13 +1,6 @@
 [theme]
-primaryColor = "#00ff00"              # Bright green success vibe
-backgroundColor = "#000000"           # Black background
-secondaryBackgroundColor = "#101010"  # Slightly lighter for contrast
-textColor = "#ffffff"                 # White text
-font = "sans serif"
-
-[theme]
-primaryColor = "#008000"              # Dark green success
-backgroundColor = "#ffffff"           # White background
-secondaryBackgroundColor = "#f0f0f0"  # Light gray for subtle borders
-textColor = "#000000"                 # Black text
-font = "sans serif"
+primaryColor="#F63366"
+backgroundColor="#FFFFFF"
+secondaryBackgroundColor="#F0F2F6"
+textColor="#262730"
+font="sans serif"

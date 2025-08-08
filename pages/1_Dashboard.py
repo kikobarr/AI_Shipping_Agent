@@ -150,7 +150,7 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     if st.button("📦 Get New Quote", use_container_width=True):
-        st.switch_page("pages/2_Shipping.py")
+        st.switch_page("AI_Agent.py")
 
 with col2:
     if st.button("🤖 Ask AI Assistant", use_container_width=True):
