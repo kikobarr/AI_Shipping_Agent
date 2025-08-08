@@ -130,10 +130,12 @@ if not st.session_state.connected:
 if not st.session_state.messages:
     st.markdown("""
     ### 💡 Try asking me:
-    - "How much does it cost to ship a 5lb package from Los Angeles, CA 90210 to Atlanta, GA 30309?"
-    - "I need overnight shipping from New York to Miami, what are my options?"
-    - "Compare all FedEx services for a 10lb box from Chicago, IL 60601 to Seattle, WA 98101"
-    - "What's the cheapest way to ship from California to Georgia?"
+    - "How much does it cost to ship a 5lb package from 913 Paseo Camarillo, Camarillo, CA 93010 to 1 Harpst St, Arcata, CA 95521?"
+    - "I need overnight shipping from 123 Main St, New York, NY 10001 to 456 Ocean Dr, Miami, FL 33139, what are my options?"
+    - "Compare all FedEx services for a 10lb box from 789 State St, Chicago, IL 60601 to 321 Pine Ave, Seattle, WA 98101"
+    - "What's the cheapest way to ship from California to Georgia?" (I'll ask for complete addresses)
+    
+    **💡 Tip:** I need complete street addresses for accurate FedEx pricing!
     """)
 
 # Chat history
@@ -153,6 +155,22 @@ for message in st.session_state.messages:
         <small style="float: right; color: #666;">{message["timestamp"]}</small>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Show debug information for assistant messages if available
+    if message["role"] == "assistant" and "debug_info" in message:
+        debug_info = message["debug_info"]
+        if debug_info.get("tool_calls_made", False):
+            with st.expander(f"🔍 Debug Info - Tools Used ({len(debug_info.get('tools_used', []))})"):
+                st.success("✅ AI Agent successfully called FedEx API tools")
+                for i, tool_info in enumerate(debug_info.get('tools_used', []), 1):
+                    st.write(f"**Tool {i}: {tool_info['tool']}**")
+                    st.json(tool_info['input'])
+                    st.text_area(f"Tool Output {i}:", tool_info['output'], height=100)
+        else:
+            with st.expander("⚠️ Debug Info - No Tools Used"):
+                st.warning("AI did not call any tools for this response. This might indicate hallucination.")
+                if "error" in debug_info:
+                    st.error(f"Error: {debug_info['error']}")
 
 # Chat input
 with st.form("chat_form", clear_on_submit=True):
@@ -177,15 +195,16 @@ with st.form("chat_form", clear_on_submit=True):
                 "timestamp": timestamp
             })
             
-            # Get AI response with tool calling
+            # Get AI response with tool calling and debug info
             with st.spinner("🤖 AI is thinking and may call FedEx API..."):
-                response = st.session_state.langchain_agent.send_message(user_input)
+                response, debug_info = st.session_state.langchain_agent.send_message(user_input)
             
             # Add AI response
             st.session_state.messages.append({
                 "role": "assistant", 
                 "content": response, 
-                "timestamp": datetime.now().strftime("%H:%M:%S")
+                "timestamp": datetime.now().strftime("%H:%M:%S"),
+                "debug_info": debug_info  # Store debug info
             })
             
             st.rerun()

@@ -13,9 +13,11 @@ from .fedexAPI import get_fedex_freight_rate
 
 class FedExShippingInput(BaseModel):
     """Input schema for FedEx shipping tool"""
+    origin_street: str = Field(description="Origin street address (e.g., '913 Paseo Camarillo')")
     origin_city: str = Field(description="Origin city name")
     origin_state: str = Field(description="Origin state code (e.g., 'CA', 'NY')")
     origin_postal_code: str = Field(description="Origin postal/zip code")
+    destination_street: str = Field(description="Destination street address (e.g., '1 Harpst St')")
     destination_city: str = Field(description="Destination city name")
     destination_state: str = Field(description="Destination state code (e.g., 'GA', 'FL')")
     destination_postal_code: str = Field(description="Destination postal/zip code")
@@ -32,22 +34,26 @@ class FedExShippingTool(BaseTool):
     name: str = "get_fedex_shipping_quote"
     description: str = """
     Get real-time shipping quotes from FedEx API. Use this tool when users ask for shipping rates, 
-    costs, or quotes. You need origin and destination addresses (city, state, postal code) and 
-    package details (weight, dimensions). Available service types:
+    costs, or quotes. You need COMPLETE addresses including street addresses, city, state, and postal code 
+    for both origin and destination, plus package details (weight, dimensions). Available service types:
     - FEDEX_GROUND: Most economical ground service
     - FEDEX_EXPRESS_SAVER: 3 business days
     - FEDEX_2_DAY: 2 business days
     - FEDEX_2_DAY_AM: 2 business days by 10:30 AM
     - STANDARD_OVERNIGHT: Next business day by 3 PM
     - PRIORITY_OVERNIGHT: Next business day by 10:30 AM
+    
+    IMPORTANT: Always ask for complete street addresses, not just city/state/zip!
     """
     args_schema: type[BaseModel] = FedExShippingInput
     
     def _run(
         self,
+        origin_street: str,
         origin_city: str,
         origin_state: str,
         origin_postal_code: str,
+        destination_street: str,
         destination_city: str,
         destination_state: str,
         destination_postal_code: str,
@@ -60,17 +66,19 @@ class FedExShippingTool(BaseTool):
         """Execute the FedEx API call"""
         
         try:
-            # Prepare the API call parameters
+            # Prepare the API call parameters with street addresses
             origin = {
+                'street': origin_street,
                 'city': origin_city,
                 'state': origin_state,
-                'postal_code': origin_postal_code
+                'postal_code': origin_postal_code  # Fixed: use postal_code not postalCode
             }
             
             destination = {
+                'street': destination_street,
                 'city': destination_city,
                 'state': destination_state,
-                'postal_code': destination_postal_code
+                'postal_code': destination_postal_code  # Fixed: use postal_code not postalCode
             }
             
             shipment = {
@@ -116,8 +124,8 @@ class FedExShippingTool(BaseTool):
                     if formatted_results:
                         # Format the response for the AI
                         response = f"FedEx Shipping Quote Results:\n"
-                        response += f"From: {origin_city}, {origin_state} {origin_postal_code}\n"
-                        response += f"To: {destination_city}, {destination_state} {destination_postal_code}\n"
+                        response += f"From: {origin_street}, {origin_city}, {origin_state} {origin_postal_code}\n"
+                        response += f"To: {destination_street}, {destination_city}, {destination_state} {destination_postal_code}\n"
                         response += f"Package: {weight} lbs, {length}x{width}x{height} inches\n\n"
                         
                         for result in formatted_results:
@@ -128,7 +136,7 @@ class FedExShippingTool(BaseTool):
                         
                         return response
                     else:
-                        return f"No rates found for {service_type} service from {origin_city}, {origin_state} to {destination_city}, {destination_state}"
+                        return f"No rates found for {service_type} service from {origin_street}, {origin_city}, {origin_state} to {destination_street}, {destination_city}, {destination_state}"
                 else:
                     return f"No rate details returned from FedEx API for the requested shipment."
             else:
@@ -149,17 +157,22 @@ class FedExMultiServiceTool(BaseTool):
     name: str = "get_fedex_all_services"
     description: str = """
     Get shipping quotes for ALL available FedEx services at once. Use this when users want to 
-    compare different shipping options or see all available services. Requires origin and 
-    destination addresses (city, state, postal code) and package details (weight, dimensions).
-    Returns quotes for Ground, Express Saver, 2Day, 2Day AM, Standard Overnight, and Priority Overnight.
+    compare different shipping options or see all available services. Requires COMPLETE addresses 
+    including street addresses, city, state, and postal code for both origin and destination, 
+    plus package details (weight, dimensions). Returns quotes for Ground, Express Saver, 2Day, 
+    2Day AM, Standard Overnight, and Priority Overnight.
+    
+    IMPORTANT: Always ask for complete street addresses, not just city/state/zip!
     """
     args_schema: type[BaseModel] = FedExShippingInput
     
     def _run(
         self,
+        origin_street: str,
         origin_city: str,
         origin_state: str,
         origin_postal_code: str,
+        destination_street: str,
         destination_city: str,
         destination_state: str,
         destination_postal_code: str,
@@ -182,15 +195,17 @@ class FedExMultiServiceTool(BaseTool):
         ]
         
         origin = {
+            'street': origin_street,
             'city': origin_city,
             'state': origin_state,
-            'postal_code': origin_postal_code
+            'postal_code': origin_postal_code  # Fixed: use postal_code not postalCode
         }
         
         destination = {
+            'street': destination_street,
             'city': destination_city,
             'state': destination_state,
-            'postal_code': destination_postal_code
+            'postal_code': destination_postal_code  # Fixed: use postal_code not postalCode
         }
         
         all_results = []
@@ -261,8 +276,8 @@ class FedExMultiServiceTool(BaseTool):
             all_results.sort(key=lambda x: x['cost'])
             
             response = f"FedEx Shipping Quote Comparison:\n"
-            response += f"From: {origin_city}, {origin_state} {origin_postal_code}\n"
-            response += f"To: {destination_city}, {destination_state} {destination_postal_code}\n"
+            response += f"From: {origin_street}, {origin_city}, {origin_state} {origin_postal_code}\n"
+            response += f"To: {destination_street}, {destination_city}, {destination_state} {destination_postal_code}\n"
             response += f"Package: {weight} lbs, {length}x{width}x{height} inches\n\n"
             response += "Available Services (sorted by price):\n"
             

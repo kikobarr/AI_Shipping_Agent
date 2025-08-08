@@ -48,28 +48,40 @@ class LangChainFedExAgent:
         - User asks "how much does it cost to ship..."
 
         REQUIRED INFORMATION FOR QUOTES:
-        - Origin: city, state, postal code
-        - Destination: city, state, postal code  
+        - Origin: COMPLETE street address, city, state, postal code
+        - Destination: COMPLETE street address, city, state, postal code  
         - Package weight (in pounds)
         - Package dimensions (length, width, height in inches) - use 12x12x12 as default if not provided
 
+        CRITICAL: Always ask for COMPLETE STREET ADDRESSES, not just city/state/zip!
+        Street-level addresses provide more accurate FedEx pricing.
+
+        Examples of COMPLETE addresses:
+        ✅ GOOD: "913 Paseo Camarillo, Camarillo, CA 93010"
+        ✅ GOOD: "1 Harpst St, Arcata, CA 95521"
+        ❌ BAD: "Camarillo, CA 93010" (missing street address)
+        ❌ BAD: "Los Angeles, CA" (missing street and zip)
+
         CONVERSATION STYLE:
         - Be helpful and professional
-        - Ask for missing information politely
+        - Ask for missing information politely, especially COMPLETE addresses
         - Explain shipping options clearly
         - Provide context about delivery times
         - Suggest the best service based on user needs (speed vs cost)
 
         EXAMPLE INTERACTIONS:
-        User: "How much to ship a 5lb package from Los Angeles, CA to Atlanta, GA?"
-        You: I'll get you current FedEx shipping rates for that. Let me check all available services for you.
-        [Use get_fedex_all_services tool]
+        User: "How much to ship a 5lb package from Los Angeles to Atlanta?"
+        You: I'd be happy to get you FedEx shipping rates! To provide accurate quotes, I need the complete street addresses. Could you please provide:
+        - Origin: Complete street address, city, state, zip (e.g., "123 Main St, Los Angeles, CA 90210")
+        - Destination: Complete street address, city, state, zip (e.g., "456 Oak Ave, Atlanta, GA 30309")
+        - Package dimensions (length x width x height in inches)
 
-        User: "I need overnight shipping from 90210 to 30309"
-        You: I can help with overnight shipping options. What's the weight and dimensions of your package?
+        User: "I need overnight shipping from 913 Paseo Camarillo, Camarillo, CA 93010 to 1 Harpst St, Arcata, CA 95521"
+        You: Perfect! I have the complete addresses. What's the weight and dimensions of your package?
         [Get details, then use tools]
 
         Remember: Always use the tools when users ask for shipping quotes - don't provide estimated prices without calling the API!
+        Always insist on complete street addresses for accurate pricing!
         """
     
     def initialize_connection(self) -> tuple[bool, str]:
@@ -108,14 +120,15 @@ class LangChainFedExAgent:
                 prompt=prompt
             )
             
-            # Create the agent executor
+            # Create the agent executor with debugging enabled
             self.agent_executor = AgentExecutor(
                 agent=agent,
                 tools=tools,
                 memory=self.memory,
-                verbose=False,  # Set to True for debugging
+                verbose=True,  # Enable verbose logging for debugging
                 handle_parsing_errors=True,
-                max_iterations=3
+                max_iterations=3,
+                return_intermediate_steps=True  # Return tool execution details
             )
             
             # Test the connection
@@ -128,7 +141,7 @@ class LangChainFedExAgent:
         except Exception as e:
             return False, f"Failed to initialize LangChain agent: {str(e)}"
     
-    def send_message(self, message: str, conversation_history: List[Dict] = None) -> str:
+    def send_message(self, message: str, conversation_history: List[Dict] = None) -> tuple[str, Dict]:
         """
         Send a message to the LangChain agent
         
@@ -137,21 +150,40 @@ class LangChainFedExAgent:
             conversation_history: Previous conversation (optional, memory handles this)
             
         Returns:
-            AI response as string
+            tuple: (AI response as string, debug_info dict)
         """
         try:
             if not self.agent_executor:
-                return "Error: Agent not initialized. Please check your connection."
+                return "Error: Agent not initialized. Please check your connection.", {}
             
             # The agent executor handles the conversation through memory
             response = self.agent_executor.invoke({
                 "input": message
             })
             
-            return response["output"]
+            # Extract debug information
+            debug_info = {
+                "tools_used": [],
+                "intermediate_steps": response.get("intermediate_steps", []),
+                "tool_calls_made": False
+            }
+            
+            # Check if tools were used
+            if "intermediate_steps" in response and response["intermediate_steps"]:
+                debug_info["tool_calls_made"] = True
+                for step in response["intermediate_steps"]:
+                    if len(step) >= 2:
+                        action, observation = step[0], step[1]
+                        debug_info["tools_used"].append({
+                            "tool": action.tool if hasattr(action, 'tool') else "unknown",
+                            "input": action.tool_input if hasattr(action, 'tool_input') else {},
+                            "output": str(observation)[:200] + "..." if len(str(observation)) > 200 else str(observation)
+                        })
+            
+            return response["output"], debug_info
             
         except Exception as e:
-            return f"Error processing your request: {str(e)}"
+            return f"Error processing your request: {str(e)}", {"error": str(e)}
     
     def set_model(self, model: str):
         """
