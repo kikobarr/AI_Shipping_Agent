@@ -3,7 +3,7 @@
 Proof of concept for an AI-powered shipping assistant that retrieves FedEx quotes via a conversational interface. The agent queries the FedEx sandbox API for rates and shipping speeds using Streamlit, LangChain, and the OpenAI API.
 
 ## Deployed App
-[Live Demo](<link-here>)
+[Live Demo](<https://ai-shipping-agent.streamlit.app/>)
 
 ## Features
 
