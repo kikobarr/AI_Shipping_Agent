@@ -50,13 +50,13 @@ st.header("AI Shipping Assistant with Live FedEx API")
 
 # Status box
 if st.session_state.connected:
-    st.success("🟢 Connected to OpenAI + FedEx API")
+    st.success("Connected to OpenAI + FedEx API")
 else:
-    st.error("🔴 Not Connected")
+    st.error("Not Connected")
 
 if not st.session_state.connected:
     st.error(f"Connection Error: {st.session_state.connection_message}")
-    if st.button("🔄 Retry Connection"):
+    if st.button("Retry Connection"):
         success, message = st.session_state.langchain_agent.initialize_connection()
         st.session_state.connected = success
         st.session_state.connection_message = message
@@ -65,8 +65,8 @@ if not st.session_state.connected:
 # Example prompts for users
 if not st.session_state.messages:
     st.markdown("""
-    ### 💡 Try asking me:
-    How much does it cost to ship a 5lb package (4 x 5 x 7in) from 913 Paseo Camarillo, Camarillo, CA 93010 to 1 Harpst St, Arcata, CA 95521?
+    **Try asking me:** How much does it cost to ship a 5lb package (4 x 5 x 7in) from 913 Paseo Camarillo, Camarillo, CA 93010 
+    to 1 Harpst St, Arcata, CA 95521?
     """)
 
 # Chat history
@@ -78,20 +78,20 @@ for message in st.session_state.messages:
     # Use Streamlit's built-in chat message display
     with st.chat_message(role):
         st.write(content)
-        st.caption(f"⏰ {timestamp}")
+        st.caption(f"{timestamp}")
     
     # Show debug information for assistant messages if available
     if role == "assistant" and "debug_info" in message:
         debug_info = message["debug_info"]
         if debug_info.get("tool_calls_made", False):
-            with st.expander(f"🔍 Debug Info - Tools Used ({len(debug_info.get('tools_used', []))})"):
-                st.success("✅ AI Agent successfully called FedEx API tools")
+            with st.expander(f"Debug Info - Tools Used ({len(debug_info.get('tools_used', []))})"):
+                st.success("AI Agent successfully called FedEx API tools")
                 for i, tool_info in enumerate(debug_info.get('tools_used', []), 1):
                     st.write(f"**Tool {i}: {tool_info['tool']}**")
                     st.json(tool_info['input'])
                     st.text_area(f"Tool Output {i}:", tool_info['output'], height=100)
         else:
-            with st.expander("⚠️ Debug Info - No Tools Used"):
+            with st.expander("Debug Info - No Tools Used"):
                 st.warning("AI did not call any tools for this response. This might indicate hallucination.")
                 if "error" in debug_info:
                     st.error(f"Error: {debug_info['error']}")
@@ -101,8 +101,7 @@ with st.form("chat_form", clear_on_submit=True):
     col1, col2 = st.columns([4, 1])
     user_input = col1.text_input(
         "Ask about shipping rates, compare services, or get FedEx quotes...", 
-        label_visibility="collapsed",
-        placeholder="e.g., How much to ship 5lbs from LA to NYC?"
+        label_visibility="collapsed"
     )
     send_button = col2.form_submit_button("Send", use_container_width=True)
 
@@ -120,7 +119,7 @@ with st.form("chat_form", clear_on_submit=True):
             })
             
             # Get AI response with tool calling and debug info
-            with st.spinner("🤖 AI is thinking and may call FedEx API..."):
+            with st.spinner("Agent is working on your request."):
                 response, debug_info = st.session_state.langchain_agent.send_message(user_input)
             
             # Add AI response
@@ -133,48 +132,40 @@ with st.form("chat_form", clear_on_submit=True):
             
             st.rerun()
 
-# Clear chat button and memory info
-col1, col2 = st.columns([1, 3])
-with col1:
-    if st.button("🗑️ Clear Chat", use_container_width=True):
-        st.session_state.messages = []
-        st.session_state.langchain_agent.clear_memory()
-        st.rerun()
-
 # Shipping Form Section
 st.markdown("---")
-st.header("📦 Get Direct FedEx Quotes")
-st.info("💡 **Alternative Option**: Use the form below to get FedEx quotes directly, or ask the AI assistant above for help with your shipping needs.")
+st.header("FedEx Quotes Directly from API")
+st.info("To confirm that the AI Agent is not hallucinating, use the form below to get quotes directly from Fedex's sandbox API and compare it to what the AI Agent fetches.")
 
 with st.form("fedex_shipping_form"):
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("📍 Origin Address")
+        st.subheader("Origin Address")
         origin = {
-            "street": st.text_input("Street", value="913 Paseo Camarillo"),
+            "street": st.text_input("Street", value="913 Paseo Camarillo", key="origin_street"),
             "apt": st.text_input("Apt / Suite", value="", key="origin_apt"),
-            "city": st.text_input("City", value="Camarillo"),
-            "state": st.text_input("State", value="CA"),
-            "postalCode": st.text_input("Postal Code", value="93010")
+            "city": st.text_input("City", value="Camarillo", key="origin_city"),
+            "state": st.text_input("State", value="CA", key="origin_state"),
+            "postalCode": st.text_input("Postal Code", value="93010", key="origin_postal")
         }
     with col2:
         st.subheader("📍 Destination Address")
         destination = {
-            "street": st.text_input("Street", value="302 Baldwin Park Dr"),
+            "street": st.text_input("Street", value="1 Harpst St", key="dest_street"),
             "apt": st.text_input("Apt / Suite", value="", key="dest_apt"),
-            "city": st.text_input("City", value="LaGrange"),
-            "state": st.text_input("State", value="GA"),
-            "postalCode": st.text_input("Postal Code", value="30241")
+            "city": st.text_input("City", value="Arcata", key="dest_city"),
+            "state": st.text_input("State", value="CA", key="dest_state"),
+            "postalCode": st.text_input("Postal Code", value="95521", key="dest_postal")
         }
 
-    st.subheader("📦 Package Details")
+    st.subheader("Package Details")
     col3, col4 = st.columns(2)
     with col3:
-        weight = st.number_input("Weight (lbs)", min_value=0.1, step=0.1, format="%.2f", value=9.0)
-        length = st.number_input("Length (in)", min_value=1.0, step=0.5, format="%.1f", value=4.0)
+        weight = st.number_input("Weight (lbs)", min_value=0.1, step=0.1, format="%.2f", value=9.0, key="package_weight")
+        length = st.number_input("Length (in)", min_value=1.0, step=0.5, format="%.1f", value=4.0, key="package_length")
     with col4:
-        width = st.number_input("Width (in)", min_value=1.0, step=0.5, format="%.1f", value=5.0)
-        height = st.number_input("Height (in)", min_value=1.0, step=0.5, format="%.1f", value=7.0)
+        width = st.number_input("Width (in)", min_value=1.0, step=0.5, format="%.1f", value=5.0, key="package_width")
+        height = st.number_input("Height (in)", min_value=1.0, step=0.5, format="%.1f", value=7.0, key="package_height")
 
     submit = st.form_submit_button("🔍 Get FedEx Shipping Quotes", use_container_width=True)
 
@@ -203,7 +194,7 @@ if submit:
         else:
             st.error("No FedEx shipping quotes could be formatted for display")
     else:
-        st.error("❌ No FedEx shipping quotes were retrieved. Please check your addresses and try again.")
+        st.error("No FedEx shipping quotes were retrieved. Please check your addresses and try again.")
 
 # Footer
 st.markdown("---")

@@ -100,24 +100,6 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* === Buttons === */
-.stButton > button {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0.75rem 1.5rem;
-    transition: all 0.2s ease;
-}
-
-.stButton > button:hover {
-    background-color: #2563eb;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
 /* === Typography === */
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Inter', sans-serif;
