@@ -1,5 +1,5 @@
 import streamlit as st
-from services.openai_connector import OpenAIConnector
+from services.langchain_agent import LangChainFedExAgent
 from datetime import datetime
 import time
 
@@ -49,6 +49,16 @@ st.markdown("""
         border-left: 4px solid #10b981;
     }
     
+    .tool-call-indicator {
+        background-color: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 6px;
+        padding: 0.5rem;
+        margin: 0.5rem 0;
+        font-size: 0.9rem;
+        color: #92400e;
+    }
+    
     .model-selector {
         background-color: #f8fafc;
         padding: 0.5rem;
@@ -68,9 +78,9 @@ except FileNotFoundError:
     pass  # CSS file not found, continue with inline styles
 
 # Initialize session state
-if 'openai_connector' not in st.session_state:
-    st.session_state.openai_connector = OpenAIConnector()
-    success, message = st.session_state.openai_connector.initialize_connection()
+if 'langchain_agent' not in st.session_state:
+    st.session_state.langchain_agent = LangChainFedExAgent()
+    success, message = st.session_state.langchain_agent.initialize_connection()
     st.session_state.connected = success
     st.session_state.connection_message = message
 if 'messages' not in st.session_state:
@@ -78,10 +88,17 @@ if 'messages' not in st.session_state:
 if 'connected' not in st.session_state:
     st.session_state.connected = False
 
-st.header("💬 Chat with AI Assistant")
+st.header("🤖 AI Shipping Assistant with Live FedEx API")
 
-# Model selector
+# Model selector and tools indicator
 col1, col2 = st.columns([3, 1])
+with col1:
+    st.markdown("""
+    <div class="tool-call-indicator">
+        🛠️ <strong>Enhanced with Tools:</strong> This AI can get live FedEx shipping quotes using real API data!
+    </div>
+    """, unsafe_allow_html=True)
+
 with col2:
     model_option = st.selectbox(
         "Model",
@@ -89,12 +106,12 @@ with col2:
         index=0,
         help="Select the OpenAI model to use"
     )
-    if model_option != st.session_state.openai_connector.model:
-        st.session_state.openai_connector.set_model(model_option)
+    if model_option != st.session_state.langchain_agent.model:
+        st.session_state.langchain_agent.set_model(model_option)
 
 # Status box
 status_class = "status-connected" if st.session_state.connected else "status-disconnected"
-status_text = "🟢 Connected to OpenAI" if st.session_state.connected else "🔴 Not Connected"
+status_text = "🟢 Connected to OpenAI + FedEx API" if st.session_state.connected else "🔴 Not Connected"
 st.markdown(f"""
 <div class="status-box {status_class}">
     {status_text}
@@ -104,10 +121,20 @@ st.markdown(f"""
 if not st.session_state.connected:
     st.error(f"Connection Error: {st.session_state.connection_message}")
     if st.button("🔄 Retry Connection"):
-        success, message = st.session_state.openai_connector.initialize_connection()
+        success, message = st.session_state.langchain_agent.initialize_connection()
         st.session_state.connected = success
         st.session_state.connection_message = message
         st.rerun()
+
+# Example prompts for users
+if not st.session_state.messages:
+    st.markdown("""
+    ### 💡 Try asking me:
+    - "How much does it cost to ship a 5lb package from Los Angeles, CA 90210 to Atlanta, GA 30309?"
+    - "I need overnight shipping from New York to Miami, what are my options?"
+    - "Compare all FedEx services for a 10lb box from Chicago, IL 60601 to Seattle, WA 98101"
+    - "What's the cheapest way to ship from California to Georgia?"
+    """)
 
 # Chat history
 for message in st.session_state.messages:
@@ -115,9 +142,14 @@ for message in st.session_state.messages:
     label = "You" if message["role"] == "user" else "AI Assistant"
     icon = "👤" if message["role"] == "user" else "🤖"
     
+    # Check if this is a tool-calling response
+    content = message["content"]
+    if "FedEx Shipping Quote" in content or "FedEx API" in content:
+        icon = "🚚"  # Use truck icon for FedEx responses
+    
     st.markdown(f"""
     <div class="{msg_type}">
-        <strong>{icon} {label}:</strong> {message["content"]}
+        <strong>{icon} {label}:</strong> {content}
         <small style="float: right; color: #666;">{message["timestamp"]}</small>
     </div>
     """, unsafe_allow_html=True)
@@ -125,7 +157,11 @@ for message in st.session_state.messages:
 # Chat input
 with st.form("chat_form", clear_on_submit=True):
     col1, col2 = st.columns([4, 1])
-    user_input = col1.text_input("Ask me anything about shipping...", label_visibility="collapsed")
+    user_input = col1.text_input(
+        "Ask about shipping rates, compare services, or get FedEx quotes...", 
+        label_visibility="collapsed",
+        placeholder="e.g., How much to ship 5lbs from LA to NYC?"
+    )
     send_button = col2.form_submit_button("Send", use_container_width=True)
 
     if send_button and user_input:
@@ -141,12 +177,9 @@ with st.form("chat_form", clear_on_submit=True):
                 "timestamp": timestamp
             })
             
-            # Get AI response
-            with st.spinner("🤖 AI is thinking..."):
-                response = st.session_state.openai_connector.send_message(
-                    user_input, 
-                    st.session_state.messages
-                )
+            # Get AI response with tool calling
+            with st.spinner("🤖 AI is thinking and may call FedEx API..."):
+                response = st.session_state.langchain_agent.send_message(user_input)
             
             # Add AI response
             st.session_state.messages.append({
@@ -157,11 +190,19 @@ with st.form("chat_form", clear_on_submit=True):
             
             st.rerun()
 
-# Clear chat button
-if st.button("🗑️ Clear Chat", use_container_width=False):
-    st.session_state.messages = []
-    st.rerun()
+# Clear chat button and memory info
+col1, col2 = st.columns([1, 3])
+with col1:
+    if st.button("🗑️ Clear Chat", use_container_width=False):
+        st.session_state.messages = []
+        st.session_state.langchain_agent.clear_memory()
+        st.rerun()
+
+with col2:
+    if st.session_state.connected:
+        memory_info = st.session_state.langchain_agent.get_memory_summary()
+        st.caption(f"💭 {memory_info}")
 
 # Footer
 st.markdown("---")
-st.markdown("*Powered by OpenAI GPT • Built with Streamlit*")
+st.markdown("*Powered by OpenAI GPT + LangChain + Live FedEx API • Built with Streamlit*")
