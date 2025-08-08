@@ -162,29 +162,6 @@ if st.button("🗑️ Clear Chat", use_container_width=False):
     st.session_state.messages = []
     st.rerun()
 
-# Information section
-with st.expander("ℹ️ About the AI Assistant"):
-    st.markdown(f"""
-    ### 🤖 AI-Powered Shipping Assistant
-    
-    **Current Model:** `{model_option}`
-    
-    **Capabilities:**
-    - 📦 **Shipping Quotes**: Help you understand shipping options and pricing
-    - 🔍 **Package Tracking**: Assist with tracking information and requirements  
-    - 🚚 **Service Explanations**: Explain different shipping services and delivery times
-    - 💡 **General Advice**: Provide shipping and logistics guidance
-    - 🤝 **Interactive Help**: Answer questions in a conversational way
-    
-    **How to Use:**
-    1. Type your question in the chat box
-    2. Use quick action buttons for common requests
-    3. Switch between different AI models for varied responses
-    4. Clear chat history anytime with the Clear Chat button
-    
-    **Note:** This AI assistant is powered by OpenAI's GPT models and provides general shipping guidance. For actual shipping quotes, use the dedicated Shipping page.
-    """)
-
 # Footer
 st.markdown("---")
 st.markdown("*Powered by OpenAI GPT • Built with Streamlit*")
