@@ -1,194 +1,179 @@
-# 📦 AWS Bedrock Agent Streamlit Frontend
+# 🚚 AI Shipping Agent with FedEx Integration
 
-A minimalistic and user-friendly Streamlit frontend that connects to AWS Bedrock Agents for intelligent assistance. Perfect for shipping, customer service, or any AI agent use case.
+A powerful, AI-driven shipping assistant that provides real-time FedEx quotes through both conversational AI and direct form input. Built with Streamlit, LangChain, and live FedEx API integration.
 
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
-![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
+![FedEx](https://img.shields.io/badge/FedEx-4D148C?style=for-the-badge&logo=fedex&logoColor=white)
 
 ## ✨ Features
 
-- 🎨 **Minimalistic Design** - Clean, modern interface
-- 💬 **Real-time Chat** - Interactive conversation with your AI agent
-- 🔗 **AWS Integration** - Direct connection to AWS Bedrock Agents
-- 📱 **Responsive** - Works on desktop, tablet, and mobile
-- 🚀 **Quick Actions** - Pre-built buttons for common tasks
-- 🔐 **Secure** - Credentials stored safely, never in code
+### 🤖 **AI-Powered Chat Interface**
+- **Natural Language Processing**: Ask shipping questions in plain English
+- **Real-time FedEx API Calls**: AI agent calls live FedEx APIs using LangChain tools
+- **Conversation Memory**: Maintains context across multiple questions
+- **Debug Information**: See exactly which tools the AI called and their responses
+
+### 📦 **Direct Form Integration**
+- **Quick Quote Form**: Get FedEx rates without AI interaction
+- **Address Validation**: Complete street-level address support
+- **Package Details**: Weight and dimension inputs with validation
+- **Instant Results**: Direct API calls for immediate quotes
+
+### 🔧 **Advanced Functionality**
+- **Copy to Clipboard**: One-click copy of package details from AI responses
+- **Service Comparison**: Side-by-side comparison of FedEx Ground, Express Saver, and 2Day
+- **Error Handling**: Robust error handling with user-friendly messages
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
 
 ## 🚀 Quick Start
 
-### 1. Clone the Repository
+### Prerequisites
+- Python 3.8+
+- OpenAI API key
+- FedEx Developer Account (for API credentials)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/kikobarr/AI_Shipping_Agent.git
+   cd AI_Shipping_Agent
+   ```
+
+2. **Create virtual environment**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Set up environment variables**
+   Create a `.env` file in the project root:
+   ```env
+   OPENAI_API_KEY=your_openai_api_key_here
+   FEDEX_API_KEY=your_fedex_api_key
+   FEDEX_SECRET_KEY=your_fedex_secret_key
+   FEDEX_ACCOUNT_NUMBER=your_fedex_account_number
+   FEDEX_METER_NUMBER=your_fedex_meter_number
+   ```
+
+5. **Run the application**
+   ```bash
+   streamlit run AI_Agent.py
+   ```
+
+## 🎯 Usage Examples
+
+### 💬 **Chat with AI Agent**
+```
+User: "Get shipping quotes for a 5lb package from New York to Los Angeles"
+AI: I'll help you get FedEx shipping quotes. Let me gather that information...
+
+[AI calls FedEx API and returns:]
+- FedEx Ground: $18.38 (4 business days)
+- FedEx Express Saver: $32.54 (3 business days)  
+- FedEx 2Day: $37.26 (2 business days)
+```
+
+### 📝 **Direct Form Input**
+1. Fill out origin and destination addresses
+2. Enter package weight and dimensions
+3. Click "Get FedEx Shipping Quotes"
+4. View instant results with pricing and transit times
+
+## 🏗️ Architecture
+
+### **Core Components**
+
+```
+AI_Agent.py                 # Main Streamlit application
+├── Chat Interface          # AI conversation with tool calling
+├── Direct Form            # Manual quote input form
+└── Results Display        # Unified quote presentation
+
+services/
+├── langchain_agent.py     # AI agent with LangChain integration
+├── fedex_tool.py         # FedEx API tools for AI agent
+├── fedexAPI.py           # Core FedEx API wrapper
+└── shipping_integration.py # Direct form API integration
+```
+
+### **Data Flow**
+
+1. **AI Path**: User → Chat → LangChain Agent → FedEx Tools → FedEx API → Results
+2. **Direct Path**: User → Form → Shipping Integration → FedEx API → Results
+
+## 🔧 Configuration
+
+### **FedEx API Setup**
+1. Register at [FedEx Developer Portal](https://developer.fedex.com/)
+2. Create a new application
+3. Get your API credentials:
+   - API Key
+   - Secret Key
+   - Account Number
+   - Meter Number
+
+### **OpenAI Setup**
+1. Get API key from [OpenAI Platform](https://platform.openai.com/)
+2. Add to environment variables
+3. Ensure sufficient credits for API calls
+
+### **Supported FedEx Services**
+- **FedEx Ground**: Most economical, 4 business days
+- **FedEx Express Saver**: 3 business days
+- **FedEx 2Day**: 2 business days
+
+## 🎨 Features in Detail
+
+### **AI Agent Capabilities**
+- **Tool Calling**: Uses LangChain to call FedEx APIs based on natural language
+- **Context Awareness**: Remembers previous questions in conversation
+- **Error Recovery**: Handles API errors gracefully with helpful messages
+- **Debug Mode**: Shows tool calls and API responses for transparency
+
+### **User Experience**
+- **Single Page Design**: Everything in one clean interface
+- **Copy Functionality**: Easy copying of package details
+- **Responsive Layout**: Adapts to different screen sizes
+- **Accessibility**: High contrast mode and keyboard navigation
+
+### **API Integration**
+- **Live FedEx Sandbox**: Real API calls to FedEx testing environment
+- **Rate Shopping**: Compares multiple service levels
+- **Address Validation**: Ensures accurate shipping calculations
+- **Error Handling**: Comprehensive error messages and recovery
+
+## 🧪 Testing
+
+### **Run Tests**
 ```bash
-git clone https://github.com/yourusername/aws-bedrock-streamlit-frontend.git
-cd aws-bedrock-streamlit-frontend
+# Test FedEx API integration
+python test_fedex_integration.py
+
+# Test AI vs Direct comparison
+python test_ai_vs_direct.py
 ```
 
-### 2. Install Dependencies
-```bash
-# Option 1: Use the setup script (recommended)
-python3 setup.py
+### **Sample Test Cases**
+- **Domestic Shipping**: California to New York
+- **Package Variations**: Different weights and dimensions
+- **Service Comparison**: All available FedEx services
+- **Error Scenarios**: Invalid addresses, API failures
 
-# Option 2: Manual installation
-pip install -r requirements.txt
-```
+## 📊 Development Stats
 
-### 3. Configure Your AWS Credentials
-```bash
-# Copy the example environment file
-cp .env.example .env
-
-# Edit .env with your actual credentials
-nano .env  # or use any text editor
-```
-
-### 4. Run the Application
-```bash
-streamlit run app.py
-```
-
-The app will open in your browser at `http://localhost:8501`
-
-## 🔧 AWS Setup Required
-
-**⚠️ Important:** This frontend requires your own AWS setup. You need:
-
-### 1. AWS Account & Credentials
-- AWS Account with billing enabled
-- IAM user with programmatic access
-- Access Key ID and Secret Access Key
-
-### 2. AWS Bedrock Agent
-- A deployed Bedrock Agent in your AWS account
-- Agent ID and Alias ID
-- Proper IAM permissions for Bedrock
-
-### 3. Required IAM Permissions
-Your AWS user needs these permissions:
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "bedrock:InvokeAgent",
-                "bedrock:GetAgent",
-                "bedrock:ListAgents"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-```
-
-## 📋 Step-by-Step AWS Setup
-
-### Step 1: Create AWS Bedrock Agent
-1. Go to [AWS Bedrock Console](https://console.aws.amazon.com/bedrock/)
-2. Navigate to "Agents" in the left sidebar
-3. Click "Create Agent"
-4. Follow the setup wizard to create your agent
-5. Note down your **Agent ID** and **Alias ID**
-
-### Step 2: Get AWS Credentials
-1. Go to [AWS IAM Console](https://console.aws.amazon.com/iam/)
-2. Create a new user or use existing user
-3. Attach the Bedrock permissions policy (see above)
-4. Generate Access Key ID and Secret Access Key
-5. **Keep these secure!**
-
-### Step 3: Configure the Frontend
-1. Copy `.env.example` to `.env`
-2. Fill in your credentials:
-```env
-AWS_ACCESS_KEY_ID=your_access_key_here
-AWS_SECRET_ACCESS_KEY=your_secret_key_here
-AWS_REGION=us-east-1
-BEDROCK_AGENT_ID=your_agent_id_here
-BEDROCK_AGENT_ALIAS_ID=TSTALIASID
-```
-
-## 🎯 How to Use
-
-1. **Start the app**: `streamlit run app.py`
-2. **Configure connection**: Use the sidebar to enter your AWS credentials
-3. **Test connection**: Click "Connect to Agent"
-4. **Start chatting**: Type messages in the chat interface
-5. **Use quick actions**: Try the pre-built buttons for common tasks
-
-## 🛠️ Customization
-
-### Change the UI Theme
-Edit the CSS in `app.py`:
-```python
-st.markdown("""
-<style>
-    .main-header {
-        background: linear-gradient(90deg, #your-color 0%, #your-color2 100%);
-    }
-</style>
-""", unsafe_allow_html=True)
-```
-
-### Add New Quick Actions
-Add buttons in the "Quick Actions" section:
-```python
-if st.button("🆕 Your New Action", use_container_width=True):
-    # Your custom logic here
-    pass
-```
-
-### Modify Agent Prompts
-Update the quick action messages to match your agent's capabilities.
-
-## 📁 Project Structure
-
-```
-aws-bedrock-streamlit-frontend/
-├── app.py                 # Main Streamlit application
-├── requirements.txt       # Python dependencies
-├── setup.py              # Setup script
-├── .env.example          # Environment variables template
-├── .env                  # Your actual credentials (not in repo)
-├── .gitignore            # Files to ignore in Git
-└── README.md             # This file
-```
-
-## 🔐 Security Best Practices
-
-- ✅ **Never commit `.env`** - It's in `.gitignore` for safety
-- ✅ **Use IAM roles** when possible instead of access keys
-- ✅ **Rotate credentials** regularly
-- ✅ **Use least privilege** - Only grant necessary permissions
-- ✅ **Monitor usage** - Check AWS CloudTrail logs
-
-## 🚨 Troubleshooting
-
-### "Connection failed" Error
-- ✅ Check AWS credentials are correct
-- ✅ Verify IAM permissions
-- ✅ Ensure agent ID and alias ID are correct
-- ✅ Check AWS region matches your agent's region
-
-### "Agent not responding" Error
-- ✅ Verify your Bedrock agent is deployed and active
-- ✅ Check agent alias is published
-- ✅ Test agent in AWS console first
-
-### Import Errors
-```bash
-# Update pip and reinstall
-pip3 install --upgrade pip
-pip3 install -r requirements.txt
-```
-
-## 💰 AWS Costs
-
-**Be aware of costs:**
-- Bedrock Agent invocations are charged per request
-- Costs vary by model and usage
-- Monitor your usage in AWS Billing Dashboard
-- Consider setting up billing alerts
+- **~1,961 lines** of Python code
+- **31 commits** of development history
+- **Single-page application** design
+- **Real-time API integration**
+- **AI-powered tool calling**
 
 ## 🤝 Contributing
 
@@ -198,21 +183,26 @@ pip3 install -r requirements.txt
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 🙏 Acknowledgments
 
-- 📖 [AWS Bedrock Documentation](https://docs.aws.amazon.com/bedrock/)
-- 📖 [Streamlit Documentation](https://docs.streamlit.io/)
-- 🐛 [Report Issues](https://github.com/yourusername/aws-bedrock-streamlit-frontend/issues)
-- 💬 [Discussions](https://github.com/yourusername/aws-bedrock-streamlit-frontend/discussions)
+- **Streamlit** for the amazing web framework
+- **LangChain** for AI agent capabilities
+- **OpenAI** for GPT integration
+- **FedEx** for shipping API access
 
-## ⭐ Show Your Support
+## 📞 Support
 
-If this project helped you, please give it a ⭐ on GitHub!
+For questions or issues:
+1. Check existing [Issues](https://github.com/kikobarr/AI_Shipping_Agent/issues)
+2. Create a new issue with detailed description
+3. Include error messages and steps to reproduce
 
 ---
 
-**Made with ❤️ and ☕ for the AWS community**
+**Made with ❤️ for the shipping and logistics community**
+
+*Transform your shipping workflow with AI-powered automation!* 🚀
