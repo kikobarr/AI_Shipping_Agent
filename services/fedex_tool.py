@@ -280,17 +280,17 @@ class FedExMultiServiceTool(BaseTool):
             # Add summary
             cheapest = all_results[0]
             most_expensive = all_results[-1]
-            response += f"\n💰 Cheapest: {cheapest['service']} - ${cheapest['cost']:.2f}"
-            response += f"\n💸 Most Expensive: {most_expensive['service']} - ${most_expensive['cost']:.2f}"
+            response += f"\n Cheapest: {cheapest['service']} - ${cheapest['cost']:.2f}"
+            response += f"\n Most Expensive: {most_expensive['service']} - ${most_expensive['cost']:.2f}"
             
             # Find fastest overnight service
             overnight_services = [r for r in all_results if 'Overnight' in r['service']]
             if overnight_services:
                 fastest = min(overnight_services, key=lambda x: x['cost'])
-                response += f"\n⚡ Fastest: {fastest['service']} - ${fastest['cost']:.2f}"
+                response += f"\n Fastest: {fastest['service']} - ${fastest['cost']:.2f}"
             
             if errors:
-                response += f"\n\n⚠️ Some services unavailable: {', '.join(errors)}"
+                response += f"\n\n Some services unavailable: {', '.join(errors)}"
             
             return response
         else:

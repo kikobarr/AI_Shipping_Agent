@@ -64,13 +64,11 @@ def get_fedex_shipping_quotes(
         }
         
         # Try different FedEx services
+        # Use the same reliable FedEx services as the AI agent tools
         fedex_services = [
             ('FEDEX_GROUND', '🚚 FedEx Ground'),
             ('FEDEX_EXPRESS_SAVER', '⚡ FedEx Express Saver'),
-            ('STANDARD_OVERNIGHT', '🌙 FedEx Standard Overnight'),
-            ('PRIORITY_OVERNIGHT', '🚀 FedEx Priority Overnight'),
-            ('FEDEX_2_DAY', '📦 FedEx 2Day'),
-            ('FEDEX_2_DAY_AM', '🌅 FedEx 2Day A.M.')
+            ('FEDEX_2_DAY', '📦 FedEx 2Day')
         ]
         
         for service_code, service_name in fedex_services:
@@ -106,10 +104,7 @@ def get_fedex_shipping_quotes(
                                     transit_time_map = {
                                         'FEDEX_GROUND': '4 business days',
                                         'FEDEX_EXPRESS_SAVER': '3 business days',
-                                        'FEDEX_2_DAY': '2 business days',
-                                        'FEDEX_2_DAY_AM': '2 business days by 10:30 AM',
-                                        'STANDARD_OVERNIGHT': 'Next business day by 3 PM',
-                                        'PRIORITY_OVERNIGHT': 'Next business day by 10:30 AM'
+                                        'FEDEX_2_DAY': '2 business days'
                                     }
                                     transit_time = transit_time_map.get(service_code, 'N/A')
                                 
