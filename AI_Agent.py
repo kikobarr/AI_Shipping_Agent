@@ -176,39 +176,44 @@ for message in st.session_state.messages:
     
     # Use Streamlit's built-in chat message display
     with st.chat_message(role):
-        # Check if this is a FedEx quote response with package details
-        if role == "assistant" and "Package:" in content and "lbs," in content and "inches" in content:
-            # Extract package details for copy functionality
-            lines = content.split('\n')
-            package_line = ""
-            from_line = ""
-            to_line = ""
-            
-            for line in lines:
-                if line.startswith("From:"):
-                    from_line = line.strip()
-                elif line.startswith("To:"):
-                    to_line = line.strip()
-                elif line.startswith("Package:"):
-                    package_line = line.strip()
-            
-            # Create copyable text
-            if package_line and from_line and to_line:
-                copyable_text = f"{package_line} {from_line} {to_line}"
-                
-                # Display content
-                st.write(content)
-                
-                # Add copy button
-                col1, col2 = st.columns([5, 1])
-                with col2:
-                    if st.button("📋 Copy Details", key=f"copy_{timestamp}", help="Copy package and route details"):
-                        st.code(copyable_text, language=None)
-                        st.success("📋 Details copied above - select and copy!")
-            else:
-                st.write(content)
-        else:
-            st.write(content)
+        # Check if this is a FedEx quote response with debug info
+        show_copy_button = False
+        copyable_text = ""
+        
+        if role == "assistant" and "debug_info" in message:
+            debug_info = message["debug_info"]
+            if debug_info.get("tool_calls_made", False) and debug_info.get('tools_used'):
+                # Check tool output for structured format
+                tool_output = debug_info['tools_used'][0]['output']
+                if "Package:" in tool_output and "From:" in tool_output and "To:" in tool_output:
+                    # Extract the structured information from tool output
+                    lines = tool_output.split('\n')
+                    package_line = ""
+                    from_line = ""
+                    to_line = ""
+                    
+                    for line in lines:
+                        if line.startswith("From:"):
+                            from_line = line.strip()
+                        elif line.startswith("To:"):
+                            to_line = line.strip()
+                        elif line.startswith("Package:"):
+                            package_line = line.strip()
+                    
+                    if package_line and from_line and to_line:
+                        copyable_text = f"{package_line} {from_line} {to_line}"
+                        show_copy_button = True
+        
+        # Display content
+        st.write(content)
+        
+        # Show copy button if applicable
+        if show_copy_button:
+            col1, col2 = st.columns([5, 1])
+            with col2:
+                if st.button("📋 Copy Details", key=f"copy_{timestamp}", help="Copy package and route details"):
+                    st.code(copyable_text, language=None)
+                    st.success("📋 Details ready to copy! Select the text above.")
             
         st.caption(f"⏰ {timestamp}")
     
